@@ -21,7 +21,7 @@ void RMSModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt
 
     if(ion.bunched()) {
         if(fixed_bunch_length) {
-            ring.rf.v = ring.calc_rf_voltage();
+            ring.update_rf_voltage();
             ring.update_bet_s();
         }
         else {
@@ -34,6 +34,6 @@ void RMSModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt
 
 void RMSModel::adjust_rf_voltage()
 {
-    if (ring.rf.gamma_tr > 0)
-        ring.rf.v = ring.calc_rf_voltage();
+    if (ring.gamma_tr() > 0)
+        ring.update_rf_voltage();
 }

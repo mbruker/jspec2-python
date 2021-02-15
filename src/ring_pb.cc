@@ -7,6 +7,7 @@
 
 #include "jspec2/ring.h"
 #include "jspec2/beam.h"
+#include "jspec2/twiss.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -31,43 +32,48 @@ void init_ring(py::module& m ){
         .def("circ", &Lattice::circ);
 
     py::class_<Ring>(m, "Ring")
-        .def(py::init<const Lattice&, const Beam *>())
-        .def_readwrite("tunes", &Ring::tunes)
-        .def_readwrite("rf", &Ring::rf)
-        .def("beta_s", &Ring::beta_s)
-        .def("circ", &Ring::circ)
-        .def("f0", &Ring::f0)
-        .def("w0", &Ring::w0)
-        .def("slip_factor", &Ring::slip_factor)
-        .def("calc_rf_voltage", &Ring::calc_rf_voltage)
-        .def("calc_sync_tune_by_rf", &Ring::calc_sync_tune_by_rf)
-        .def("beam", &Ring::beam)
-        .def("lattice", &Ring::lattice)
-        .def("set_rf", &Ring::set_rf);
-
-    py::class_<Tunes>(m, "Tunes")
-        .def(py::init<>())
-        .def_readwrite("qx", &Tunes::qx)
-        .def_readwrite("qy", &Tunes::qy)
-        .def_readwrite("qs", &Tunes::qs);
-
-    py::class_<RF>(m, "RF")
-        .def(py::init<>())
-        .def_readwrite("v", &RF::v)
-        .def_readwrite("h", &RF::h)
-        .def_readwrite("phi", &RF::phi)
-        .def_readwrite("gamma_tr", &RF::gamma_tr);
+        .def(py::init<const Lattice&, const Beam *, double, double, double, double, int, double, double>(),
+             py::arg("lattice"),
+             py::arg("beam"),
+             py::arg("qx") = 0,
+             py::arg("qy") = 0,
+             py::arg("qs") = 0,
+             py::arg("rf_voltage") = 0,
+             py::arg("rf_h") = 1,
+             py::arg("rf_phi") = 0,
+             py::arg("gamma_tr") = 0
+        )
+        .def_property_readonly("beta_s", &Ring::beta_s)
+        .def_property_readonly("circ", &Ring::circ)
+        .def_property_readonly("f0", &Ring::f0)
+        .def_property_readonly("w0", &Ring::w0)
+        .def_property_readonly("slip_factor", &Ring::slip_factor)
+        .def_property_readonly("qx", &Ring::qx)
+        .def_property_readonly("qy", &Ring::qy)
+        .def_property_readonly("qs", &Ring::qs)
+        .def_property_readonly("rf_voltage", &Ring::rf_voltage)
+        .def_property_readonly("rf_h", &Ring::rf_h)
+        .def_property_readonly("rf_phi", &Ring::rf_phi)
+        .def_property_readonly("gamma_tr", &Ring::gamma_tr);
 
     py::class_<Twiss>(m, "Twiss")
-        .def(py::init<>())
-        .def_readwrite("bet_x", &Twiss::bet_x)
-        .def_readwrite("alf_x", &Twiss::alf_x)
-        .def_readwrite("disp_x", &Twiss::disp_x)
-        .def_readwrite("disp_dx", &Twiss::disp_dx)
-        .def_readwrite("bet_y", &Twiss::bet_y)
-        .def_readwrite("alf_y", &Twiss::alf_y)
-        .def_readwrite("disp_y", &Twiss::disp_y)
-        .def_readwrite("disp_dy", &Twiss::disp_dy);
-
+        .def(py::init<double, double, double, double, double, double, double, double>(),
+             py::arg("beta_x"),
+             py::arg("beta_y"),
+             py::arg("alpha_x") = 0,
+             py::arg("alpha_y") = 0,
+             py::arg("disp_x") = 0,
+             py::arg("disp_y") = 0,
+             py::arg("disp_dx") = 0,
+             py::arg("disp_dy") = 0
+        )
+        .def_readonly("bet_x", &Twiss::bet_x)
+        .def_readonly("alf_x", &Twiss::alf_x)
+        .def_readonly("disp_x", &Twiss::disp_x)
+        .def_readonly("disp_dx", &Twiss::disp_dx)
+        .def_readonly("bet_y", &Twiss::bet_y)
+        .def_readonly("alf_y", &Twiss::alf_y)
+        .def_readonly("disp_y", &Twiss::disp_y)
+        .def_readonly("disp_dy", &Twiss::disp_dy);
 }
 

@@ -341,7 +341,7 @@ void ForceCurve::force_to_file(FrictionForceSolver &force_solver, Beam &ion, Coo
     if(iszero(angle, 1e-14)) n_tr = 0;
     int n_sample = (n_tr+1) * (2*n_l+1);
     if(n_sample>scratch_size) init_scratch(n_sample);
-    Ions_MonteCarlo ion_sample(n_sample);
+    Ions_MonteCarlo ion_sample(cooler.twiss(), n_sample);
     if(density_e>0) ne.assign(n_sample, density_e*ebeam.gamma());
     else electron_density(ion_sample,ebeam);
 

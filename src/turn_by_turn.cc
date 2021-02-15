@@ -54,9 +54,10 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     const Twiss& twiss = ion_sample.get_twiss();
 
     //Transverse motion by tunes
-    assert(ring.tunes.qx>0&&ring.tunes.qy>0&&"Transverse tunes are needed for Turn_by_turn model");
-    double Qx = ring.tunes.qx;
-    double Qy = ring.tunes.qy;
+    const double Qx = ring.qx();
+    const double Qy = ring.qy();
+    assert(Qx>0 && Qy>0 &&"Transverse tunes are needed for Turn_by_turn model");
+    
     vector<double>& x_bet = ion_sample.cdnt(Phase::X_BET);
     vector<double>& xp_bet = ion_sample.cdnt(Phase::XP_BET);
     vector<double>& y_bet = ion_sample.cdnt(Phase::Y_BET);
@@ -105,10 +106,10 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     //Longitudinal motion.
 //    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
 //    vector<double>& ds = ion_sample.cdnt(Phase::DS);
-    if (ring.tunes.qs>0||ring.rf.v>0) {    //RF, synchrotron oscillation.
+    if (ring.qs()>0||ring.rf_voltage()>0) {    //RF, synchrotron oscillation.
 //        assert(ring.tunes->qs>0||ring.rf->v>0&&"Longitudinal tune or RF cavity needed for Turn_by_turn model");
 
-        if(ring.rf.v>0) { //Longitudinal motion by RF.
+        if(ring.rf_voltage()>0) { //Longitudinal motion by RF.
             double circ = ring.circ();
             double beta2 = ion.beta()*ion.beta();
             double beta2_inv = 1/beta2;
@@ -116,10 +117,10 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
             double total_energy_inv = 1/total_energy;
             double adj_dp2dE = beta2*total_energy;
 
-            double volt = ring.rf.v;
-            double phi_s = ring.rf.phi;
+            double volt = ring.rf_voltage();
+            double phi_s = ring.rf_phi();
 //            double phi_0 = ring.rf->phi_0();
-            double h = ring.rf.h;
+            double h = ring.rf_h();
 //            double s_s = phi_s*circ/(h*2*k_pi);
             double half_phase = h*k_pi;
             double total_phase = h*2*k_pi;
@@ -129,7 +130,7 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     //                double adj_dE = ion.charge_number()*ring.rf_->volt()*1e-6; // [MeV/c^2]
             double sin_phi_s = sin(phi_s);
 //            double sin_phi_s = sin(phi_s+phi_0);
-            double eta = 1/(ring.rf.gamma_tr*ring.rf.gamma_tr) - 1/(ion.gamma()*ion.gamma()); //phase slip factor
+            double eta = ring.slip_factor();
             double adj_dE2dphi = total_phase*eta*beta2_inv*total_energy_inv;
             #ifdef _OPENMP
                 #pragma omp parallel for
@@ -150,8 +151,8 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
                 dp_p[i]  = dp_p[i]*total_energy_inv*beta2_inv; //dE -> dE/E -> dp/p = beta*beta*dE/E;
             }
         }
-        else if(ring.tunes.qs>0) {//Longitudinal motion by tune
-            double phi = 2*k_pi*ring.tunes.qs;
+        else if(ring.qs()>0) {//Longitudinal motion by tune
+            double phi = 2*k_pi*ring.qs();
             double inv_beta_s = 1/ring.beta_s();
             double beta_s = ring.beta_s();
             #ifdef _OPENMP

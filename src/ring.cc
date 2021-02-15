@@ -123,28 +123,26 @@ Lattice::Lattice(double circ)
 }
 
 
-Ring::Ring(const Lattice &lattice, const Beam *beam)
-    : beam_(beam), lattice_(lattice)
+Ring::Ring(const Lattice &lattice, const Beam *beam, double qx, double qy, double qs, double rf_voltage, int rf_h, double rf_phi, double gamma_tr)
+    : beam_(beam), lattice_(lattice), qx_(qx), qy_(qy), qs_(qs), rf_voltage_(rf_voltage), rf_h_(rf_h), rf_phi_(rf_phi), gamma_tr_(gamma_tr)
 {
     if(beam->bunched())
-        beta_s_ = beam->sigma_s()/beam->dp_p();
+        update_bet_s();
     f0_ = beam_->beta()*k_c/lattice.circ();
     w0_ = 2*k_pi*f0_;
-//    if(!rf) {
-//        if(rf->gamma_tr>0) {
-//            double gamma = beam_->gamma();
-//            slip_factor_ = 1/(rf->gamma_tr*rf->gamma_tr) - 1/(gamma*gamma);
-//        }
-//    }
+
+    /* TODO: Transition gamma is a function of the lattice, not the RF.
+     * We could calculate it instead of asking the user for it.
+     * The same is true for the transverse tunes.
+     */
+    
+    // TODO: if rf_voltage > 0 and gamma_tr not > 0: exception
 }
 
-void Ring::set_rf() {
-    if(rf.gamma_tr>0) {
-        double gamma = beam_->gamma();
-        slip_factor_ = 1/(rf.gamma_tr*rf.gamma_tr) - 1/(gamma*gamma);
-    }
-}
-
+/*
+ * TODO: This function is not needed for anything.
+ * Find out if it can be safely deleted.
+ * 
 double Ring::calc_sync_tune_by_rf() const
 {
     assert(rf.v>0&&rf.gamma_tr>0&&"DEFINE THE RF CAVITY FOR SYNCHROTRON TUNE CALCULATION!"); //RF has to be defined.
@@ -160,16 +158,21 @@ double Ring::calc_sync_tune_by_rf() const
 
     return tune;
 }
-
-double Ring::calc_rf_voltage() const
+*/
+void Ring::update_rf_voltage()
 {
     if(beam_->bunched()) {
         double energy = beam_->gamma()*beam_->mass()*1e6; //Total energy in [eV].
-        double v_rf = 2*k_pi*k_c*k_c*beam_->beta()*beam_->beta()*beam_->beta()*beam_->beta()*slip_factor_*energy*
-            beam_->dp_p()*beam_->dp_p()/(w0_*w0_*rf.h*cos(rf.phi)*beam_->sigma_s()*beam_->sigma_s());
-        return (v_rf>0)?v_rf:-v_rf;
+        double v_rf = 2*k_pi*k_c*k_c*beam_->beta()*beam_->beta()*beam_->beta()*beam_->beta()*slip_factor()*energy*
+            beam_->dp_p()*beam_->dp_p()/(w0_*w0_*rf_h_*cos(rf_phi_)*beam_->sigma_s()*beam_->sigma_s());
+        rf_voltage_ = (v_rf>0)?v_rf:-v_rf;
     }
     else {
-        return 0;
+        rf_voltage_ = 0;
     }
+}
+
+double Ring::slip_factor() const
+{
+    return 1/(gamma_tr_*gamma_tr_) - 1/(beam_->gamma()*beam_->gamma());
 }

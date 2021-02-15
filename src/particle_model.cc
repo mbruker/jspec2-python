@@ -7,6 +7,7 @@
 #include "jspec2/functions.h"
 #include "jspec2/ions.h"
 #include "jspec2/cooler.h"
+#include "jspec2/ring.h"
 
 void ParticleModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt) {
 //    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
@@ -28,7 +29,7 @@ void ParticleModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, doub
 
     if(fixed_bunch_length && ion.bunched()) {
         ring.update_bet_s();
-        ring.rf.v = ring.calc_rf_voltage();
+        ring.update_rf_voltage();
     }
 }
 

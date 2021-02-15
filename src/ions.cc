@@ -6,30 +6,7 @@
 #include "jspec2/ions.h"
 #include "jspec2/arbitrary_electron_beam.h"
 #include "jspec2/functions.h"
-#include "jspec2/cooler.h"
 
-
-void Ions::set_twiss(const Twiss& t) {
-    twiss.bet_x = t.bet_x;
-    twiss.bet_y = t.bet_y;
-    twiss.alf_x = t.alf_x;
-    twiss.alf_y = t.alf_y;
-    twiss.disp_x = t.disp_x;
-    twiss.disp_y = t.disp_y;
-    twiss.disp_dx = t.disp_dx;
-    twiss.disp_dy = t.disp_dy;
-}
-
-void Ions::set_twiss(const Cooler& cooler) {
-    twiss.bet_x = cooler.beta_h();
-    twiss.bet_y = cooler.beta_v();
-    twiss.alf_x = cooler.alpha_h();
-    twiss.alf_y = cooler.alpha_v();
-    twiss.disp_x = cooler.disp_h();;
-    twiss.disp_y = cooler.disp_v();;
-    twiss.disp_dx = cooler.der_disp_h();
-    twiss.disp_dy = cooler.der_disp_v();
-}
 
 const vector<double>& Ions::get_cdnt(Phase p) const {
     switch(p) {
@@ -298,7 +275,9 @@ void Ions::adjust_disp_inv(){
     ::adjust_disp_inv(twiss.disp_dy, yp_bet, dp_p, yp, n_);
 }
 
-Ions_MonteCarlo::Ions_MonteCarlo(int n_sample){
+Ions_MonteCarlo::Ions_MonteCarlo(const Twiss &_twiss, int n_sample)
+    : Ions(_twiss)
+{
     n_=n_sample;
     x_bet.resize(n_sample,0);
     y_bet.resize(n_sample,0);
@@ -312,7 +291,9 @@ Ions_MonteCarlo::Ions_MonteCarlo(int n_sample){
     yp.resize(n_sample,0);
 }
 
-Ions_MonteCarlo::Ions_MonteCarlo(std::string filename, int n, int skip, bool binary, int n_buffer) {
+Ions_MonteCarlo::Ions_MonteCarlo(const Twiss &_twiss, std::string filename, int n, int skip, bool binary, int n_buffer)
+    : Ions(_twiss)
+{
     auto n_loaded = load_electrons(x, xp, y, yp, ds, dp_p, filename, n, skip, binary,n_buffer);
     if (n_loaded!=n_) n_ = n_loaded;
 }
@@ -354,7 +335,11 @@ void Ions_MonteCarlo::create_samples(const Beam& ion) {
     if(bunched_) beta_s_ = ion.sigma_s()/ion.dp_p();
 }
 
-Ions_SingleParticle::Ions_SingleParticle(int n_tr, int n_l):n_tr_(n_tr),n_l_(n_l) {
+Ions_SingleParticle::Ions_SingleParticle(const Twiss &_twiss, int n_tr, int n_l)
+    : Ions(_twiss),
+      n_tr_(n_tr),
+      n_l_(n_l)
+{
     n_=n_tr*n_tr*n_l;
     x_spl.resize(n_tr_);
     y_spl.resize(n_tr_);

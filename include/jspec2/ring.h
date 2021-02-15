@@ -47,52 +47,50 @@ class Lattice{
     Lattice(double circ);
 };
 
-struct Tunes {
-    double qx = 0;
-    double qy = 0;
-    double qs = 0;
-};
-
-struct RF {
-    double v = 0; //Voltage in [V].
-    int h = 1; //Harmonic number
-    double phi = 0; //phase in [2*PI]
-    double gamma_tr = 0; //Transition gamma
-};
-
-class Ring{
+class Ring {
+protected:
     double beta_s_ = 0;         //Synchrotron function, use to calculate rms bunch length from momentum spread
     double f0_ = 0;               // revolution frequency.
     double w0_ = 0;       // angular revolution frequency.
-    double slip_factor_ = 0;     //slip factor.
     const Beam *beam_;
     Lattice lattice_;
+    // Tunes
+    double qx_ = 0;
+    double qy_ = 0;
+    double qs_ = 0;
+    // RF
+    double rf_voltage_ = 0;     // RF voltage in V
+    int rf_h_ = 1;               // RF harmonic number
+    double rf_phi_ = 0;          // RF phase in 2*pi
+    double gamma_tr_ = 0;        // Transition gamma
  public:
-    Tunes tunes;
-    RF rf;
     double beta_s() const {assert(beam_->bunched()); return beta_s_;}
     double circ() const { return lattice_.circ(); }
     double f0() const {return f0_;}
     double w0() const {return w0_;}
-    double slip_factor() const {return slip_factor_;}
-    double calc_rf_voltage() const;
-    double calc_sync_tune_by_rf() const;
+    double rf_voltage() const { return rf_voltage_; }
+    double rf_h() const { return rf_h_; }
+    double rf_phi() const { return rf_phi_; }
+    double gamma_tr() const { return gamma_tr_; }
+    double slip_factor() const;
+//    double calc_sync_tune_by_rf() const;
     const Beam& beam() const {return *beam_;}
     const Lattice& lattice() const {return lattice_;}
-    Ring(const Lattice &lattice_defined, const Beam *beam_defined);
-    void set_rf();
+    double qx() const { return qx_; }
+    double qy() const { return qy_; }
+    double qs() const { return qs_; }
+    Ring(const Lattice &lattice_defined,
+         const Beam *beam_defined,
+         double qx = 0,
+         double qy = 0,
+         double qs = 0,
+         double rf_voltage = 0,
+         int rf_h = 1,
+         double rf_phi = 0,
+         double gamma_tr = 0
+        );
     void update_bet_s(){beta_s_ = beam_->sigma_s()/beam_->dp_p();}
-};
-
-struct Twiss{
-    double bet_x = 0;
-    double bet_y = 0;
-    double alf_x = 0;
-    double alf_y = 0;
-    double disp_x = 0;
-    double disp_y = 0;
-    double disp_dx = 0;
-    double disp_dy = 0;
+    void update_rf_voltage();
 };
 
 #endif // RING_H

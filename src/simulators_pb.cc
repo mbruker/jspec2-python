@@ -18,11 +18,11 @@
 #include "jspec2/ibs.h"
 #include "jspec2/ecooling.h"
 #include "jspec2/luminosity.h"
+#include "jspec2/ring.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
 using std::vector;
-
 
 class PySink : public DataSink {
 public:

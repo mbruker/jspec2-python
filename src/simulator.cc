@@ -114,7 +114,7 @@ void Simulator::run(Beam& ion, Ions& ion_sample, EBeam& ebeam,
         state.rx = state.rx_ibs + state.rx_ecool;
         state.ry = state.ry_ibs + state.ry_ecool;
         state.rs = state.rs_ibs + state.rs_ecool;
-
+// TODO state.rf_voltage?
         if (i%state_output_interval==0) {
             if (lum_solver) {
                 if (lum_solver->use_ion_emit())
@@ -124,6 +124,7 @@ void Simulator::run(Beam& ion, Ions& ion_sample, EBeam& ebeam,
             if (datasink)
                 datasink->output_simulator_state(state);
 //            output(ion.bunched(), ring.rf.v, lum*10000);
+            // TODO luminosity unit? consider factor 10000
         }
 
         update_ibeam(ion, ion_sample, ebeam, dt);
