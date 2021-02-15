@@ -25,4 +25,7 @@
     - Named arguments, default values where applicable
     - Documentation
 
+- The constants FrictionForceSolver::k_f and ForcePark::k_f have different values.
+  Super dangerous! Can we rename one of them?
+
 - Example files!

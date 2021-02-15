@@ -20,11 +20,11 @@
 using std::cout;
 using std::endl;
 
-void ECoolRate::electron_density(Ions& ion_sample, EBeam &ebeam) {
+void ECoolRate::electron_density(const Ions& ion_sample, EBeam &ebeam) {
     int n_sample = ion_sample.n_sample();
-    vector<double>& x = ion_sample.cdnt_x();
-    vector<double>& y = ion_sample.cdnt_y();
-    vector<double>& ds = ion_sample.cdnt_ds();
+    const vector<double>& x = ion_sample.cdnt_x();
+    const vector<double>& y = ion_sample.cdnt_y();
+    const vector<double>& ds = ion_sample.cdnt_ds();
     if(ebeam.p_shift()) {
         double cx, cy, cz;
         ion_sample.center(cx, cy, cz);
@@ -80,7 +80,7 @@ void ECoolRate::beam_frame(int n_sample, double gamma_e) {
 }
 
 //Calculate friction force
-void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, FrictionForceSolver &force_solver) {
+void ECoolRate::force(int n_sample, const Beam &ion, const EBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver) {
     //set parameters for friction force calculation
     force_solver.set_mag_field(cooler.magnetic_field());
     force_solver.set_time_cooler(t_cooler_);
@@ -127,7 +127,7 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
     }
 }
 
-void ECoolRate::bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, Cooler &cooler,
+void ECoolRate::bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler,
                         FrictionForceSolver &force_solver){
     int n_sample = ion_sample.n_sample();
     int count = 1;
@@ -172,7 +172,7 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 }
 
 //Distribute to x and y direction
-void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
+void ECoolRate::force_distribute(int n_sample, const Beam &ion, const Ions &ion_sample) {
     double v0 = ion.beta()*k_c;
     const vector<double>& xp = ion_sample.cdnt_xp();
     const vector<double>& yp = ion_sample.cdnt_yp();
@@ -185,7 +185,7 @@ void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
     }
 }
 
-void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
+void ECoolRate::apply_kick(int n_sample, const Beam &ion, const Ions& ion_sample) {
     double p0 = ion.p0_SI();
     const vector<double>& ixp = ion_sample.cdnt_xp();
     const vector<double>& iyp = ion_sample.cdnt_yp();
@@ -221,7 +221,7 @@ void ECoolRate::adjust_rate(const Beam &ion, const EBeam &ebeam, initializer_lis
     }
 }
 
-std::tuple<double, double, double> ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
+rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
                 Ions &ion_sample, Cooler &cooler, EBeam &ebeam, Ring &ring) {
     int n_sample = ion_sample.n_sample();
     if(n_sample>scratch_size) init_scratch(n_sample);
@@ -294,7 +294,7 @@ void ECoolRate::save_force_sdds_head(std::ofstream& of, int n) {
         <<n<<endl;
 }
 
-void ForceCurve::force_to_file(FrictionForceSolver &force_solver, Beam &ion, Cooler &cooler, EBeam &ebeam){
+void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const Beam &ion, const Cooler &cooler, EBeam &ebeam){
     save_force = true;
     if(iszero(dp_p, 1e-14)) n_l = 0;
     if(iszero(angle, 1e-14)) n_tr = 0;

@@ -42,6 +42,16 @@ public:
     vector<double>& cdnt_yp() { return yp; }
     vector<double>& cdnt_ds() { return ds; }
     vector<double>& cdnt_dp_p() { return dp_p; }
+    const vector<double>& cdnt_x_bet() const { return x_bet; }
+    const vector<double>& cdnt_xp_bet() const { return xp_bet; }
+    const vector<double>& cdnt_y_bet() const { return y_bet; }
+    const vector<double>& cdnt_yp_bet() const { return yp_bet; }
+    const vector<double>& cdnt_x() const { return x; }
+    const vector<double>& cdnt_y() const { return y; }
+    const vector<double>& cdnt_xp() const { return xp; }
+    const vector<double>& cdnt_yp() const { return yp; }
+    const vector<double>& cdnt_ds() const { return ds; }
+    const vector<double>& cdnt_dp_p() const { return dp_p; }
     
     const Twiss& get_twiss() const {return twiss;}
 //    void set_n_sample(int n){n_ = n;}

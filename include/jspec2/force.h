@@ -16,10 +16,10 @@ class FrictionForceSolver{
 protected:
     double time_cooler;
     double mag_field = 0;
-    const double k_f = -4*k_pi*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
-    const double k_wp = 4*k_pi*k_c*k_c*k_e*k_ke/(k_me*1e6);
-    const double k_rho_min = k_e*k_ke*k_c*k_c/(k_me*1e6);
-    virtual void init(EBeam& ebeam){};
+    static constexpr double k_f = -4*k_pi*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
+    static constexpr double k_wp = 4*k_pi*k_c*k_c*k_e*k_ke/(k_me*1e6);
+    static constexpr double k_rho_min = k_e*k_ke*k_c*k_c/(k_me*1e6);
+    virtual void init(const EBeam& ebeam){};
     virtual void fin(){};
     double max_impact_factor(double v_dlt, int charge_number,double density_e);
 public:
@@ -27,13 +27,13 @@ public:
     void set_mag_field(double x){mag_field = x;}
     double t_cooler(){return time_cooler;}
     virtual void friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
 };
 
 class ForcePark: public FrictionForceSolver {
 private:
-    const double k_f = -4*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
+    static constexpr double k_f = -4*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
     double t_eff = 0; //Effective temperature.
     double v_eff = 0; //Effective velocity.
     void rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, Temperature tpr,
@@ -44,18 +44,18 @@ public:
     void set_t_eff(double x){t_eff = x; v_eff = sqrt(t_eff*k_c*k_c/(k_me*1e6));}
     void set_v_eff(double v){v_eff = v; t_eff = v_eff*v_eff*k_me*1e6/(k_c*k_c);}
     virtual void friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceNonMag: public FrictionForceSolver {
 protected:
     bool smooth_rho_max = false;
-    virtual double f_const(int charge_number){return charge_number*charge_number*k_f;}
-    double rho_min_const(int charge_number) {return charge_number*k_rho_min;}
-    double rho_max_1(int charge_number, double density_e){return pow(3*charge_number/density_e, 1.0/3);}
-    double rho_max_2(double v){return v*time_cooler;};
-    double rho_max(int charge_number, double v2, double ve2, double ne);
+    virtual double f_const(int charge_number) const {return charge_number*charge_number*k_f;}
+    static constexpr double rho_min_const(int charge_number) {return charge_number*k_rho_min;}
+    static constexpr double rho_max_1(int charge_number, double density_e){return pow(3*charge_number/density_e, 1.0/3);}
+    double rho_max_2(double v) const {return v*time_cooler;};
+    double rho_max(int charge_number, double v2, double ve2, double ne) const;
     virtual void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                        double f_const,double rho_min_const, int charge_number, double ne,
                        double& force_tr, double& force_l) = 0;
@@ -63,8 +63,8 @@ protected:
 public:
     void set_smooth_rho_max(bool b){smooth_rho_max = b;}
     virtual void friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceNonMagDerbenev: public ForceNonMag {
@@ -72,7 +72,7 @@ private:
     double rho_max_ve_tr(double ve_tr, double ne);
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
-                               double& force_tr, double& force_l);
+                               double& force_tr, double& force_l) override;
 public:
 
 };
@@ -81,16 +81,15 @@ class ForceNonMagMeshkov: public ForceNonMag {
 private:
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
-                               double& force_tr, double& force_l);
+                               double& force_tr, double& force_l) override;
 public:
 
 };
 
 class ForceNonMagNumeric1D: public ForceNonMag {
 private:
-    double f_const(int charge_number){return 0.28209479177387814*charge_number*charge_number*k_f;} //Coef - 1/sqrt(4*pi)
-    const double k_f = 2*sqrt(2*k_pi)*k_pi*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
-
+    double f_const(int charge_number) const override {return 0.28209479177387814*charge_number*charge_number*k_f;} //Coef - 1/sqrt(4*pi)
+    static constexpr double k_f = 2*sqrt(2*k_pi)*k_pi*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
 
     size_t limit = 100;
     double espabs = 1e-6;
@@ -113,7 +112,7 @@ private:
     double b(double q, void* params);
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
-                               double& force_tr, double& force_l);
+                               double& force_tr, double& force_l) override;
 public:
     void set_espabs(double x){espabs = x;}
     void set_esprel(double x){esprel = x;}
@@ -190,7 +189,7 @@ private:
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);
 
-    void init(EBeam& ebeam);
+    void init(const EBeam& ebeam) override;
     double inner_integrand(double phi, void* params);
     double middle_integrand(double vl, void* params);
     double outter_integrand(double vtr, void* params);
@@ -204,7 +203,7 @@ private:
                                double& force_tr, double& force_l);
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
-                               double& force_tr, double& force_l);
+                               double& force_tr, double& force_l) override;
 public:
     void set_espabs(double x){espabs = x;}
     void set_esprel(double x){esprel = x;}
@@ -241,8 +240,8 @@ protected:
 public:
     void set_smooth_factor(double x){k = x;}
     virtual void friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceDSM: public FrictionForceSolver {    //Derbenev-Skrinsky-Meshkov formula for magnetized cooling.
@@ -300,7 +299,7 @@ class ForceDSM: public FrictionForceSolver {    //Derbenev-Skrinsky-Meshkov form
     #endif // _OPENMP
 
 protected:
-    void init(EBeam& ebeam);
+    void init(const EBeam& ebeam) override;
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);
     void calc_alpha();
@@ -314,7 +313,7 @@ public:
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run_fa = true;}
     void set_mag_only(bool b){mag_only = b;}
     virtual void friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 #endif // FORCE_H

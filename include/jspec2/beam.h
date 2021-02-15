@@ -172,7 +172,7 @@ public:
     void set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long);
     void set_neutral(double x){neutralisation_ = x;}
     void set_multi_bunches(bool b){multi_bunches_ = b;}
-    bool multi_bunches(){return multi_bunches_;}
+    bool multi_bunches() const {return multi_bunches_;}
     const vector<double>& get_v(EBeamV v) const;
     virtual void edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n){};

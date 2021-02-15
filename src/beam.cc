@@ -381,7 +381,8 @@ void ParticleBunch::density(const vector<double>& x, const vector<double>& y, co
     for(int i=0; i<n; ++i) ne[i] *= rate;
 }
 
-void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) {
+void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n)
+{
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {
         density(x, y, z, d, n, -cx_.at(i), -cy_.at(i), -cz_.at(i));
@@ -390,7 +391,8 @@ void EBeam::multi_density(const vector<double>& x, const vector<double>& y, cons
 }
 
 void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
-                       double cz) {
+                       double cz)
+{
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {
         density(x, y, z, d, n, cx-cx_.at(i), cy-cy_.at(i), cz-cz_.at(i));

@@ -54,6 +54,7 @@ set(HEADER_FILES
         ${INCLUDE_DIR}/jspec2/simulator.h
         ${INCLUDE_DIR}/jspec2/turn_by_turn.h
         ${INCLUDE_DIR}/jspec2/twiss.h
+        ${INCLUDE_DIR}/jspec2/rate.h
 )
 
 set(PYTHON_FILES

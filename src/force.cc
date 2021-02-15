@@ -103,8 +103,8 @@ double ForcePark::lc(Temperature tpr, double rho_max, double rho_min, const vect
     return lc;
 }
 
-void ForcePark::friction_force(int charge_number, int ion_number, vector<double>& v_tr, vector<double>& v_long,vector<double>& density_e,
-                EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
+void ForcePark::friction_force(int charge_number, int ion_number, const vector<double>& v_tr, const vector<double>& v_long, const vector<double>& density_e,
+                const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
     double f_const = charge_number*charge_number*k_f;
     double v2_eff_e = v_eff*v_eff;
 
@@ -159,7 +159,8 @@ void ForcePark::friction_force(int charge_number, int ion_number, vector<double>
     }
 }
 
-double ForceNonMag::rho_max(int charge_number, double v2, double ve2, double ne) {
+double ForceNonMag::rho_max(int charge_number, double v2, double ve2, double ne) const
+{
     double rho_max = 0;
     if(smooth_rho_max) {
         rho_max = sqrt((v2+ve2)/(k_wp*ne));
@@ -175,8 +176,8 @@ double ForceNonMag::rho_max(int charge_number, double v2, double ve2, double ne)
     return rho_max;
 }
 
-void ForceNonMag::friction_force(int charge_number, int ion_number, vector<double>& v_tr, vector<double>& v_long,vector<double>& density_e,
-                EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
+void ForceNonMag::friction_force(int charge_number, int ion_number, const vector<double>& v_tr, const vector<double>& v_long, const vector<double>& density_e,
+                const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
     init(ebeam);
     double f_const = this->f_const(charge_number);
     double rho_min_const = this->rho_min_const(charge_number);
@@ -530,7 +531,7 @@ double ForceNonMagNumeric3D::outter_integrand(double vtr, void* params) {
     return result;
 }
 
-void ForceNonMagNumeric3D::init(EBeam& ebeam) {
+void ForceNonMagNumeric3D::init(const EBeam& ebeam) {
     auto tpr = ebeam.temperature();
     if(tpr==Temperature::CONST) {
         const_tmpr = true;
@@ -780,8 +781,8 @@ void ForceMeshkov::force(double ve_tr, double ve_l, double ve2_tr, double ve2_l,
 }
 
 void ForceMeshkov::friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
 
     double rho_min_const = charge_number * k_rho_min;
     double f_const = k_f*charge_number*charge_number/2;
@@ -894,7 +895,7 @@ void ForceDSM::calc_exp_ve2(double ve2_l, vector<double>& t2) {
     }
 }
 
-void ForceDSM::init(EBeam& ebeam) {
+void ForceDSM::init(const EBeam& ebeam) {
     auto tpr = ebeam.temperature();
     if(tpr==Temperature::CONST) {
         const_tpr = true;
@@ -1095,8 +1096,8 @@ void ForceDSM::force(double ve_tr, double ve_l, double ve2_tr, double ve2_l, dou
 }
 
 void ForceDSM::friction_force(int charge_number, int ion_number,
-            vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
-            EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
+            const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
+            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) {
 
     init(ebeam);
 
