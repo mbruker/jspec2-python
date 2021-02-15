@@ -102,7 +102,7 @@ void Simulator::run(Beam& ion, Ions& ion_sample, EBeam& ebeam,
             state.sigma_s = ion.sigma_s();
 
         if(ibs_solver) {
-            ibs_solver->rate(ring.lattice(), ion, state.rx_ibs, state.ry_ibs, state.rs_ibs);
+            std::tie(state.rx_ibs, state.ry_ibs, state.rs_ibs) = ibs_solver->rate(ring.lattice(), ion);
         }
 
         if(ecool_solver) {

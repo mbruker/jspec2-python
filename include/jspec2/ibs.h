@@ -10,6 +10,7 @@
 #include <gsl/gsl_errno.h>
 
 #include "jspec2/force.h"
+#include "jspec2/rate.h"
 
 class Lattice;
 class Beam;
@@ -35,7 +36,7 @@ public:
 
     IBSSolver(double log_c, double k);
 
-    virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs) = 0;
+    virtual rate3d rate(const Lattice &lattice, const Beam &beam) = 0;
 };
 
 class IBSSolver_Martini : public IBSSolver {
@@ -92,7 +93,7 @@ public:
     void set_nv(int nv) { assert(nv>0&&"Wrong value of nv in IBS parameters!"); nv_ = nv; invalidate_cache(); }
     void set_nz(int nz) { assert(nz>0&&"Wrong value of nz in IBS parameters!"); nz_ = nz; invalidate_cache(); }
     IBSSolver_Martini(int nu, int nv, int nz, double log_c, double k);
-    virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs);
+    virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
 };
 
 class IBSSolver_BM : public IBSSolver {
@@ -120,7 +121,7 @@ class IBSSolver_BM : public IBSSolver {
      double coef_bm(const Lattice &lattice, const Beam &beam) const;
  public:
      IBSSolver_BM(double log_c, double k);
-     virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs);
+     virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
 
 };
 
@@ -151,7 +152,7 @@ private:
 public:
     IBSSolver_BMZ(int nt, double log_c, double k);
     void set_nt(int n){assert(n>0&&"Wrong value of nt in IBS parameters!"); nt_ = n; invalidate_cache();}
-    virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs);
+    virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
     void set_factor(double x){factor = x;}
 };
 
@@ -193,7 +194,7 @@ private:
 public:
      IBSSolver_BM_Complete(int nt, double log_c, double k);
      void set_factor(double x){factor = x;}
-     virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs);
+     virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
 
 };
 //

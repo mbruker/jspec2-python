@@ -255,7 +255,7 @@ double IBSSolver_Martini::coef_a(const Lattice &lattice, const Beam &beam) const
     return k_c*beam.r()*beam.r()*lambda/(16*k_pi*sqrt(k_pi)*beam.dp_p()*beta3*gamma4)/(beam.emit_x()*beam.emit_y());
 }
 
-void IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs)
+rate3d IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam)
 {
     bunch_size(lattice, beam);
     abcdk(lattice, beam);
@@ -267,9 +267,9 @@ void IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam, double &r
 
     double a = coef_a(lattice, beam);
 
-    rx = 0;
-    ry = 0;
-    rs = 0;
+    double rx = 0;
+    double ry = 0;
+    double rs = 0;
     int n=2;
     if (beam.bunched()) n=1;
     const double circ = lattice.circ();
@@ -315,6 +315,7 @@ void IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam, double &r
     }
 
     if(k_>0) ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+    return std::make_tuple(rx, ry, rs);
 }
 
 
@@ -409,7 +410,7 @@ double IBSSolver_BM::coef_bm(const Lattice &lattice, const Beam &beam) const {
     return lambda*beam.particle_number()*beam.r()*beam.r()*k_c/(lattice.circ()*6*sqrt(k_pi)*beta3*gamma5);
 }
 
-void IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs)
+rate3d IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam)
 {
     int n_element = lattice.n_element();
 
@@ -423,9 +424,9 @@ void IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam, double &rx, do
     const double lc = log_c();
     c_bm *= lc;
 
-    rx = 0;
-    ry = 0;
-    rs = 0;
+    double rx = 0;
+    double ry = 0;
+    double rs = 0;
     int n=2;
     if (beam.bunched()) n=1;
 
@@ -478,6 +479,7 @@ void IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam, double &rx, do
 
     if(k_>0)
         ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+    return std::make_tuple(rx, ry, rs);
 }
 
 IBSSolver_BMZ::IBSSolver_BMZ(int nt, double log_c, double k) : IBSSolver(log_c, k), nt_(nt) {
@@ -609,7 +611,7 @@ double IBSSolver_BMZ::coef(const Lattice &lattice, const Beam &beam) const {
     return k_c*beam.r()*beam.r()*lambda/(8*k_pi*beam.dp_p()*beta3*gamma4*beam.emit_x()*beam.emit_y());
 }
 
-void IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs) {
+rate3d IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam) {
     int n_element = lattice.n_element();
 
     if (cache_invalid) {
@@ -619,9 +621,9 @@ void IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam, double &rx, d
 
     double c_bmz = coef(lattice, beam)*log_c()/lattice.circ();
 
-    rx = 0;
-    ry = 0;
-    rs = 0;
+    double rx = 0;
+    double ry = 0;
+    double rs = 0;
     int n=2;
     if (beam.bunched()) n=1;
     double gamma_2 = beam.gamma()*beam.gamma();
@@ -679,6 +681,7 @@ void IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam, double &rx, d
 
     if(k_>0)
         ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+    return std::make_tuple(rx, ry, rs);
 }
 
 
@@ -809,7 +812,7 @@ void IBSSolver_BM_Complete::calc_itgl(int i, std::array<std::array<double, 3>,3>
             ii[j][k] *= d;
 }
 
-void IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs) {
+rate3d IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam) {
     int n_element = lattice.n_element();
 
     if (cache_invalid) {
@@ -819,9 +822,9 @@ void IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam, doubl
 
     double c_bmc = coef(lattice, beam)*log_c()/lattice.circ();
 
-    rx = 0;
-    ry = 0;
-    rs = 0;
+    double rx = 0;
+    double ry = 0;
+    double rs = 0;
     int n=2;
     if (beam.bunched()) n=1;
     calc_beam_const(beam);
@@ -889,6 +892,7 @@ void IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam, doubl
 
     if(k_>0)
         ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+    return std::make_tuple(rx, ry, rs);
 }
 
 IBSSolver_BM_Complete::IBSSolver_BM_Complete(int nt, double log_c, double k) : IBSSolver(log_c, k), nt_(nt) {
