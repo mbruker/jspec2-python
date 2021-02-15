@@ -323,7 +323,7 @@ void create_e_tree(std::vector<double>& x, std::vector<double>& y, std::vector<d
 	}
 }
 
-void create_ion_tree(std::vector<double>& x, std::vector<double>& y, std::vector<double>& z, const int n, std::vector<Box> &tree,
+void create_ion_tree(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z, const int n, std::vector<Box> &tree,
                 std::vector<int>& list, int &idx_out) {
 	//prepare for the particle list
 	long int idx_in = n;
@@ -422,8 +422,8 @@ void create_ion_tree(std::vector<double>& x, std::vector<double>& y, std::vector
 	list.at(ptr_out) = n;
 }
 
-void density(vector<Box> &tree, std::vector<long int>& list_e, std::vector<double>& vx, std::vector<double>& vy,
-             std::vector<double>& vz, const long int ne,  std::vector<int>& list_i, int idx_out,
+void density(const vector<Box> &tree, std::vector<long int>& list_e, const std::vector<double>& vx, const std::vector<double>& vy,
+             const std::vector<double>& vz, const long int ne, const std::vector<int>& list_i, int idx_out,
              const int ni, std::vector<double>& density_e, std::vector<double>& v_avg_z, std::vector<double>& v_rms_t,
              std::vector<double>& v_rms_l) {
 
@@ -490,8 +490,8 @@ void density(vector<Box> &tree, std::vector<long int>& list_e, std::vector<doubl
 
 
 
-void density(vector<Box> &tree, std::vector<long int>& list_e, std::vector<double>& vx, std::vector<double>& vy,
-             std::vector<double>& vz, const long int ne,  std::vector<int>& list_i,
+void density(const vector<Box> &tree, const std::vector<long int>& list_e, const std::vector<double>& vx, const std::vector<double>& vy,
+             const std::vector<double>& vz, const long int ne, const std::vector<int>& list_i,
              int idx_out, const int ni, std::vector<double>& density_e,
              std::vector<double>& v_rms_t, std::vector<double>& v_rms_l) {
 

@@ -10,7 +10,7 @@
 #include "jspec2/ring.h"
 
 void ParticleModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt) {
-//    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
+//    vector<double>& dp_p = ion_sample.cdnt_dp_p();
     if(ecool_solver) {
         double freq = k_c*ion.beta()/ring.circ()*cooler.section_number();
         ecool_solver->adjust_rate(ion, ebeam, {&freq});
@@ -34,12 +34,12 @@ void ParticleModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, doub
 }
 
 void ParticleModel::apply_cooling_kick(double freq, Beam& ion, Ions& ion_sample, double dt) {
-    vector<double>& xp = ion_sample.cdnt(Phase::XP);
-    vector<double>& yp = ion_sample.cdnt(Phase::YP);
-    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
-    vector<double>& force_x = ecool_solver->scratch(ECoolRateScratch::FORCE_X);
-    vector<double>& force_y = ecool_solver->scratch(ECoolRateScratch::FORCE_Y);
-    vector<double>& force_z = ecool_solver->scratch(ECoolRateScratch::FORCE_Z);
+    vector<double>& xp = ion_sample.cdnt_xp();
+    vector<double>& yp = ion_sample.cdnt_yp();
+    vector<double>& dp_p = ion_sample.cdnt_dp_p();
+    const vector<double>& force_x = ecool_solver->get_force_x();
+    const vector<double>& force_y = ecool_solver->get_force_y();
+    const vector<double>& force_z = ecool_solver->get_force_z();
     double p0 = ion.p0_SI();
     double t_cooler = ecool_solver->t_cooler();
     #ifdef _OPENMP
@@ -60,14 +60,15 @@ void ParticleModel::apply_ibs_kick(Beam& ion, Ions& ion_sample, double dt) {
     auto twiss = ion_sample.get_twiss();
     assert(twiss.bet_x>0&& twiss.bet_y>0
            &&"TWISS parameters for the reference point not defined! Define twiss_ref.");
-    ibs_kick(ion_sample.n_sample(), state.rx_ibs, twiss.bet_x, ion.emit_x(), ion_sample.cdnt(Phase::XP), dt);
-    ibs_kick(ion_sample.n_sample(), state.ry_ibs, twiss.bet_y, ion.emit_y(), ion_sample.cdnt(Phase::YP), dt);
-    ibs_kick(ion_sample.n_sample(), state.rs_ibs, ion.bunched() ? 1.0 : 2.0, ion.dp_p()*ion.dp_p(), ion_sample.cdnt(Phase::DP_P), dt);
+    ibs_kick(ion_sample.n_sample(), state.rx_ibs, twiss.bet_x, ion.emit_x(), ion_sample.cdnt_xp(), dt);
+    ibs_kick(ion_sample.n_sample(), state.ry_ibs, twiss.bet_y, ion.emit_y(), ion_sample.cdnt_yp(), dt);
+    ibs_kick(ion_sample.n_sample(), state.rs_ibs, ion.bunched() ? 1.0 : 2.0, ion.dp_p()*ion.dp_p(), ion_sample.cdnt_dp_p(), dt);
 }
 
 void ParticleModel::ibs_kick(int n_sample, double rate, double twiss, double emit, vector<double>& v, double dt) {
     if(rate>0) {
         double theta = sqrt(2*rate*dt*emit/twiss);
+        vector<double> rdn(n_sample);
         gaussian_random(n_sample, rdn, 1, 0);
         #ifdef _OPENMP
             #pragma omp parallel for
@@ -86,11 +87,11 @@ void ParticleModel::ibs_kick(int n_sample, double rate, double twiss, double emi
 void ParticleModel::move_particles(Beam& ion, Ions& ion_sample) {
     //New betatron oscillation coordinates
     auto twiss = ion_sample.get_twiss();
-    vector<double>& x_bet = ion_sample.cdnt(Phase::X_BET);
-    vector<double>& xp_bet = ion_sample.cdnt(Phase::XP_BET);
-    vector<double>& y_bet = ion_sample.cdnt(Phase::Y_BET);
-    vector<double>& yp_bet = ion_sample.cdnt(Phase::YP_BET);
-    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
+    vector<double>& x_bet = ion_sample.cdnt_x_bet();
+    vector<double>& xp_bet = ion_sample.cdnt_xp_bet();
+    vector<double>& y_bet = ion_sample.cdnt_y_bet();
+    vector<double>& yp_bet = ion_sample.cdnt_yp_bet();
+    vector<double>& dp_p = ion_sample.cdnt_dp_p();
 
     int n_sample = ion_sample.n_sample();
     ion_sample.adjust_disp_inv();
@@ -103,7 +104,8 @@ void ParticleModel::move_particles(Beam& ion, Ions& ion_sample) {
 
     double gamma_x = (1+alf_x*alf_x)/beta_x;
     double gamma_y = (1+alf_y*alf_y)/beta_y;
-
+    
+    vector<double> rdn(n_sample);
     uniform_random(n_sample, rdn, -1, 1);
     #ifdef _OPENMP
         #pragma omp parallel for
@@ -130,7 +132,7 @@ void ParticleModel::move_particles(Beam& ion, Ions& ion_sample) {
         double beta_s = ring.beta_s();
         if(fixed_bunch_length) beta_s =  ion.sigma_s()/rms(n_sample, dp_p);
         double beta_s2_inv = 1/(beta_s*beta_s);
-        vector<double>& ds = ion_sample.cdnt(Phase::DS);
+        vector<double>& ds = ion_sample.cdnt_ds();
         #ifdef _OPENMP
             #pragma omp parallel for
         #endif // _OPENMP
@@ -157,12 +159,12 @@ void ParticleModel::update_beam_parameters(Beam &ion, Ions& ion_sample) {
 
     if(ion.bunched()) {
         if(fixed_bunch_length) {
-            ion.set_dp_p(rms(ion_sample.n_sample(), ion_sample.cdnt(Phase::DP_P)));
+            ion.set_dp_p(rms(ion_sample.n_sample(), ion_sample.cdnt_dp_p()));
             ion_sample.update_bet_s(ion);
         }
         else {
-            ion.set_sigma_s(rms(ion_sample.n_sample(), ion_sample.cdnt(Phase::DS)));
-            ion.set_dp_p(rms(ion_sample.n_sample(), ion_sample.cdnt(Phase::DP_P)));
+            ion.set_sigma_s(rms(ion_sample.n_sample(), ion_sample.cdnt_ds()));
+            ion.set_dp_p(rms(ion_sample.n_sample(), ion_sample.cdnt_dp_p()));
         }
     }
     else {
@@ -180,7 +182,3 @@ void ParticleModel::update_beam_parameters(Beam &ion, Ions& ion_sample) {
     }
 }
 */
-void ParticleModel::precondition(Ions &ion_sample)
-{
-    rdn.resize(ion_sample.n_sample());
-}

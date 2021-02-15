@@ -12,7 +12,7 @@ class Cooler;
 using std::vector;
 using std::string;
 
-enum class IonSampleType {MONTE_CARLO, USER_DEFINE, SINGLE_PARTICLE};
+//enum class IonSampleType {MONTE_CARLO, USER_DEFINE, SINGLE_PARTICLE};
 enum class Phase {X_BET, XP_BET, Y_BET, YP_BET, X, Y, XP, YP, DS, DP_P};
 
 class Ions{
@@ -20,7 +20,6 @@ protected:
     vector<double> x_bet, xp_bet, y_bet, yp_bet;
     vector<double> x, y, xp, yp, ds, dp_p;
     int n_ = 0; //Number of sample particles.
-    IonSampleType sample_type_ = IonSampleType::MONTE_CARLO;
     Twiss twiss;
     double center_[3] = {0,0,0};
     bool bunched_ = true;
@@ -31,13 +30,23 @@ public:
     void adjust_disp();
     void adjust_disp_inv();
     void save_ions_sdds(string filename) const;
-    const vector<double>& get_cdnt(Phase p) const;
-    vector<double>& cdnt(Phase p);
+    
+    // getters for computation vectors
+    vector<double>& cdnt_x_bet() { return x_bet; }
+    vector<double>& cdnt_xp_bet() { return xp_bet; }
+    vector<double>& cdnt_y_bet() { return y_bet; }
+    vector<double>& cdnt_yp_bet() { return yp_bet; }
+    vector<double>& cdnt_x() { return x; }
+    vector<double>& cdnt_y() { return y; }
+    vector<double>& cdnt_xp() { return xp; }
+    vector<double>& cdnt_yp() { return yp; }
+    vector<double>& cdnt_ds() { return ds; }
+    vector<double>& cdnt_dp_p() { return dp_p; }
+    
     const Twiss& get_twiss() const {return twiss;}
 //    void set_n_sample(int n){n_ = n;}
     int n_sample() const { return n_; }
-    IonSampleType sample_type() const {return sample_type_;}
-    void center(double &cx, double &cy, double &cz){cx = center_[0]; cy = center_[1]; cz = center_[2];}
+    void center(double &cx, double &cy, double &cz) const {cx = center_[0]; cy = center_[1]; cz = center_[2];}
     virtual void emit(double& emit_x, double& emit_y, double& emit_s) = 0;
     virtual void emit(vector<double>& x_bet, vector<double>& xp_bet, vector<double>& y_bet, vector<double>& yp_bet,
                       vector<double>& dp_p,vector<double>&ds, double& emit_x, double& emit_y, double& emit_s) = 0;

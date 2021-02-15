@@ -22,9 +22,9 @@ using std::endl;
 
 void ECoolRate::electron_density(Ions& ion_sample, EBeam &ebeam) {
     int n_sample = ion_sample.n_sample();
-    vector<double>& x = ion_sample.cdnt(Phase::X);
-    vector<double>& y = ion_sample.cdnt(Phase::Y);
-    vector<double>& ds = ion_sample.cdnt(Phase::DS);
+    vector<double>& x = ion_sample.cdnt_x();
+    vector<double>& y = ion_sample.cdnt_y();
+    vector<double>& ds = ion_sample.cdnt_ds();
     if(ebeam.p_shift()) {
         double cx, cy, cz;
         ion_sample.center(cx, cy, cz);
@@ -40,9 +40,9 @@ void ECoolRate::electron_density(Ions& ion_sample, EBeam &ebeam) {
 
 void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
     double v = ion.beta()*k_c;
-    vector<double>& xp = ion_sample.cdnt(Phase::XP);
-    vector<double>& yp = ion_sample.cdnt(Phase::YP);
-    vector<double>&dp_p = ion_sample.cdnt(Phase::DP_P);
+    vector<double>& xp = ion_sample.cdnt_xp();
+    vector<double>& yp = ion_sample.cdnt_yp();
+    vector<double>&dp_p = ion_sample.cdnt_dp_p();
     for(int i=0; i<n_sample; ++i) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
 //        v_long[i] /= (1-(v_long[i]+v)*ion.beta()/k_c);    //Convert to beam frame, when v_long<<v, canceled with the above line.
@@ -174,8 +174,8 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 //Distribute to x and y direction
 void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
     double v0 = ion.beta()*k_c;
-    vector<double>& xp = ion_sample.cdnt(Phase::XP);
-    vector<double>& yp = ion_sample.cdnt(Phase::YP);
+    const vector<double>& xp = ion_sample.cdnt_xp();
+    const vector<double>& yp = ion_sample.cdnt_yp();
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -187,9 +187,9 @@ void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
 
 void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
     double p0 = ion.p0_SI();
-    vector<double>& ixp = ion_sample.cdnt(Phase::XP);
-    vector<double>& iyp = ion_sample.cdnt(Phase::YP);
-    vector<double>& idp_p = ion_sample.cdnt(Phase::DP_P);
+    const vector<double>& ixp = ion_sample.cdnt_xp();
+    const vector<double>& iyp = ion_sample.cdnt_yp();
+    const vector<double>& idp_p = ion_sample.cdnt_dp_p();
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -261,12 +261,12 @@ std::tuple<double, double, double> ECoolRate::ecool_rate(FrictionForceSolver &fo
     double emit_x, emit_y, emit_z;
     auto t = ion_sample.get_twiss();
 
-    adjust_disp_inv(t.disp_x, x_bet, dp_p, ion_sample.cdnt(Phase::X), n_sample);
+    adjust_disp_inv(t.disp_x, x_bet, dp_p, ion_sample.cdnt_x(), n_sample);
     adjust_disp_inv(t.disp_dx, xp_bet, dp_p, xp, n_sample);
-    adjust_disp_inv(t.disp_y, y_bet, dp_p, ion_sample.cdnt(Phase::Y), n_sample);
+    adjust_disp_inv(t.disp_y, y_bet, dp_p, ion_sample.cdnt_y(), n_sample);
     adjust_disp_inv(t.disp_dy, yp_bet, dp_p, yp, n_sample);
 
-    ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt(Phase::DS), emit_x, emit_y, emit_z);
+    ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt_ds(), emit_x, emit_y, emit_z);
 
     double rate_x = emit_x/emit_x0-1;
     double rate_y = emit_y/emit_y0-1;
@@ -278,47 +278,6 @@ std::tuple<double, double, double> ECoolRate::ecool_rate(FrictionForceSolver &fo
 
     adjust_rate(ion, ebeam, {&rate_x, &rate_y, &rate_s});
     return std::make_tuple(rate_x, rate_y, rate_s);
-std::cout << "ecool rate: " << rate_x << " ; " << rate_y << " ; " << rate_s << std::endl;
-
-}
-
-vector<double>& ECoolRate::scratch(ECoolRateScratch s) {
-    switch(s) {
-        case ECoolRateScratch::XP_BET: {
-            return xp_bet;
-        }
-        case ECoolRateScratch::YP_BET: {
-            return yp_bet;
-        }
-        case ECoolRateScratch::XP: {
-            return xp;
-        }
-        case ECoolRateScratch::DP_P: {
-            return dp_p;
-        }
-        case ECoolRateScratch::V_TR: {
-            return v_tr;
-        }
-        case ECoolRateScratch::V_LONG: {
-            return v_long;
-        }
-        case ECoolRateScratch::YP: {
-            return yp;
-        }
-        case ECoolRateScratch::FORCE_X: {
-            return force_x;
-        }
-        case ECoolRateScratch::FORCE_Y: {
-            return force_y;
-        }
-        case ECoolRateScratch::FORCE_Z: {
-            return force_z;
-        }
-        default: {
-            assert(false&&"Wrong scratch variable selected in ECoolRate!");
-            return xp;
-        }
-    }
 }
 
 void ECoolRate::save_force_sdds_head(std::ofstream& of, int n) {

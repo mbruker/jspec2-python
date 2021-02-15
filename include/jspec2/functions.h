@@ -61,7 +61,7 @@ int uniform_random_adjust(int n, T& random_num, double avg) {
 }
 
 template <typename T>
-double rms(int n, T& v) {
+double rms(int n, const T& v) {
     double sum = 0;
     for(int i=0; i<n; ++i) {
         sum += v[i];

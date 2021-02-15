@@ -7,12 +7,10 @@
 - The thing with the dual force solver seems dirty.
   Is there a clean way?
 
-- Is ParticleModel::rdn a necessary class member or could it
-  be local in the scope of the method using it?
-  The latter would eliminate the precondition() crutch.
-  
 - update_bet_s() exists in both Ions and Ring. Find out if
   this makes sense
+
+- Can other_effects.cc be removed?
   
 - Replace assertions by exceptions (and properly expose those to Python).
   Design all constructors and setters such that they will catch

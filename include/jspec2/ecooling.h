@@ -17,7 +17,6 @@ class Ring;
 using std::vector;
 using std::initializer_list;
 
-enum class IonSample {SINGLE_PARTICLE, MONTE_CARLO};
 enum class ECoolRateScratch {XP_BET, YP_BET, XP, YP, DP_P, V_TR, V_LONG, FORCE_X, FORCE_Y, FORCE_Z};
 
 class ECoolRate{
@@ -49,8 +48,13 @@ public:
     void set_dual_force_solver(bool b){dual_force_solver = b;}
     void set_second_force_solver(FrictionForceSolver* force) {force_solver_l = force;}
     void adjust_rate(const Beam &ion, const EBeam &ebeam, initializer_list<double*> func);
-    vector<double>& scratch(ECoolRateScratch s);
-    double t_cooler(){return t_cooler_;}
+    
+    // getters for computation vectors
+    const vector<double> &get_force_x() const { return force_x; }
+    const vector<double> &get_force_y() const { return force_y; }
+    const vector<double> &get_force_z() const { return force_z; }
+    
+    double t_cooler() const {return t_cooler_;}
     void set_n_long_sample(int n){n_long_sample_ = n;}
     std::tuple<double, double, double> ecool_rate(FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler, EBeam &ebeam, Ring &ring);
 };

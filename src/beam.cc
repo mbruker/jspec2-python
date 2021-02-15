@@ -103,7 +103,7 @@ void GaussianBunch::set_angles(double sigma_xp, double sigma_yp, double sigma_dp
 //    std::cout<<"Longitudinal temperature [eV]: "<<tpr_l<<std::endl;
 }
 
-void UniformCylinder::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void UniformCylinder::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
     double r2 = radius_*radius_;
@@ -114,7 +114,7 @@ void UniformCylinder::density(vector<double>& x, vector<double>& y, vector<doubl
     }
 }
 
-void UniformCylinder::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void UniformCylinder::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
@@ -130,7 +130,7 @@ void UniformCylinder::density(vector<double>& x, vector<double>& y, vector<doubl
     }
 }
 
-void UniformHollow::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void UniformHollow::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
     int nq = this->charge_number();
     double out_r2 = out_radius_*out_radius_;
     double in_r2 = in_radius_*in_radius_;
@@ -149,7 +149,7 @@ void UniformHollow::density(vector<double>& x, vector<double>& y, vector<double>
     }
 }
 
-void UniformHollow::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void UniformHollow::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
     int nq = this->charge_number();
     double out_r2 = out_radius_*out_radius_;
@@ -173,7 +173,7 @@ void UniformHollow::density(vector<double>& x, vector<double>& y, vector<double>
 }
 
 
-void UniformHollowBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void UniformHollowBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
 
     int nq = this->charge_number();
     double out_r2 = out_radius_*out_radius_;
@@ -195,7 +195,7 @@ void UniformHollowBunch::density(vector<double>& x, vector<double>& y, vector<do
     }
 }
 
-void UniformHollowBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void UniformHollowBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
 
     int nq = this->charge_number();
@@ -224,7 +224,7 @@ void UniformHollowBunch::density(vector<double>& x, vector<double>& y, vector<do
 }
 
 
-void UniformBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void UniformBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
 
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
@@ -239,7 +239,7 @@ void UniformBunch::density(vector<double>& x, vector<double>& y, vector<double>&
     }
 }
 
-void UniformBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void UniformBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
@@ -260,7 +260,7 @@ void UniformBunch::density(vector<double>& x, vector<double>& y, vector<double>&
 }
 
 
-void EllipticUniformBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void EllipticUniformBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
 
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
@@ -276,7 +276,7 @@ void EllipticUniformBunch::density(vector<double>& x, vector<double>& y, vector<
     }
 }
 
-void EllipticUniformBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void EllipticUniformBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
     int nq = this->charge_number();
     if (nq<0) nq *= -1;
@@ -299,7 +299,7 @@ void EllipticUniformBunch::density(vector<double>& x, vector<double>& y, vector<
 }
 
 
-void GaussianBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
+void GaussianBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle) {
     double amp = n_electron_/(sqrt(8*k_pi*k_pi*k_pi)*sigma_x_*sigma_y_*sigma_s_);
     double sigma_x2 = -1/(2*sigma_x_*sigma_x_);
     double sigma_y2 = -1/(2*sigma_y_*sigma_y_);
@@ -309,7 +309,7 @@ void GaussianBunch::density(vector<double>& x, vector<double>& y, vector<double>
     }
 }
 
-void GaussianBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle,
+void GaussianBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n_particle,
                 double cx, double cy, double cz) {
     double amp = n_electron_/(sqrt(8*k_pi*k_pi*k_pi)*sigma_x_*sigma_y_*sigma_s_);
     double sigma_x2 = -1/(2*sigma_x_*sigma_x_);
@@ -345,7 +345,7 @@ void ParticleBunch::load_particle() {
 }
 
 
-void ParticleBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n) {
+void ParticleBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) {
     double rate = n_electron_/n_;
     std::vector<int> list_i;
     int idx_out;
@@ -357,33 +357,31 @@ void ParticleBunch::density(vector<double>& x, vector<double>& y, vector<double>
     for(int i=0; i<n; ++i) ne[i] *= rate;
 }
 
-void ParticleBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n, double cx, double cy,
+void ParticleBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
                        double cz) {
     double rate = n_electron_/n_;
     cx -= this->center(0);
     cy -= this->center(1);
     cz -= this->center(2);
+    vector<double> x_shifted = x;
+    vector<double> y_shifted = y;
+    vector<double> z_shifted = z;
     for(int i=0; i<n; ++i) {
-        x[i] += cx;
-        y[i] += cy;
-        z[i] += cz;
+        x_shifted[i] += cx;
+        y_shifted[i] += cy;
+        z_shifted[i] += cz;
     }
     std::vector<int> list_i;
     int idx_out;
-    create_ion_tree(x, y, z, n, tree_, list_i, idx_out);
+    create_ion_tree(x_shifted, y_shifted, z_shifted, n, tree_, list_i, idx_out);
     if (v_x_corr_)
         {::density(tree_, list_e_, vx, vy, vz, n_, list_i, idx_out, n, ne, v_avg_l, v_rms_t, v_rms_l);}
     else
         {::density(tree_, list_e_, vx, vy, vz, n_, list_i, idx_out, n, ne, v_rms_t, v_rms_l);}
-    for(int i=0; i<n; ++i) {
-        x[i] -= cx;
-        y[i] -= cy;
-        z[i] -= cz;
-    }
     for(int i=0; i<n; ++i) ne[i] *= rate;
 }
 
-void EBeam::multi_density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n) {
+void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) {
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {
         density(x, y, z, d, n, -cx_.at(i), -cy_.at(i), -cz_.at(i));
@@ -391,7 +389,7 @@ void EBeam::multi_density(vector<double>& x, vector<double>& y, vector<double>& 
     }
 }
 
-void EBeam::multi_density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n, double cx, double cy,
+void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
                        double cz) {
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {

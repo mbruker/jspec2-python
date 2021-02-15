@@ -174,19 +174,16 @@ public:
     void set_multi_bunches(bool b){multi_bunches_ = b;}
     bool multi_bunches(){return multi_bunches_;}
     const vector<double>& get_v(EBeamV v) const;
-    vector<double>& cx(){return cx_;}
-    vector<double>& cy(){return cy_;}
-    vector<double>& cz(){return cz_;}
     virtual void edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n){};
     virtual void edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n, double cx, double cy, double cz){};
     void set_n_bunches(int n){n_ = n; cx_.resize(n); cy_.resize(n), cz_.resize(n);}
-    virtual void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n) = 0;
-    virtual void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
+    virtual void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) = 0;
+    virtual void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
                          double cx, double cy, double cz) = 0;
-    void multi_density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void multi_density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
+    void multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n);
+    void multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
                          double cx, double cy, double cz);
     void multi_edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n);
@@ -198,9 +195,9 @@ class UniformCylinder: public EBeam{
     double current_;                   //Current of the beam in A
     double radius_;              //Radius of the beam in meter
  public:
-    void density (vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density (vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density (const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density (const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     double current() const {return current_;}
     double radius() const {return radius_;}
     Shape shape() const {return Shape::UNIFORM_CYLINDER;}
@@ -214,9 +211,9 @@ class UniformHollow: public EBeam {
     double in_radius_;
     double out_radius_;
  public:
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     double current() const {return current_;}
     double out_radius() const {return out_radius_;}
     double in_radius() const {return in_radius_;}
@@ -233,9 +230,9 @@ class UniformHollowBunch: public EBeam {
     double out_radius_;
     double length_;
  public:
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     double current() const {return current_;}
     double out_radius() const {return out_radius_;}
     double in_radius() const {return in_radius_;}
@@ -254,9 +251,9 @@ class UniformBunch: public EBeam{
     double t_falling_ = 0;
 public:
     //Calculate the charge density for a given position (x,y,z) in Lab frame.
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     Shape shape() const {return Shape::UNIFORM_BUNCH;}
     double length() const {return length_;}
     double current() const {return current_;}
@@ -280,9 +277,9 @@ class EllipticUniformBunch: public EBeam{
     double length_;     //bunch length
 public:
     //Calculate the charge density for a given position (x,y,z) in Lab frame.
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     Shape shape() const {return Shape::ELLIPTIC_UNIFORM_BUNCH;}
     double length() const {return length_;}
     EllipticUniformBunch(double current, double rh, double rv, double length):current_(current),
@@ -299,9 +296,9 @@ class GaussianBunch: public EBeam{
     double sigma_yp_;
     double sigma_dpp_;
  public:
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     Shape shape() const {return Shape::GAUSSIAN_BUNCH;}
     double length() const {return 6*sigma_s_;}
     void set_angles(double sigma_xp, double sigma_yp, double sigma_dpp);
@@ -326,12 +323,12 @@ class ParticleBunch: public EBeam {
 public:
     std::vector<double> x, y, z, vx, vy, vz;  //Electron phase space coordinates
     //Calculate the charge density for a given position (x,y,z) in Lab frame.
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
-    void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
-                double cx, double cy, double cz);
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n) override;
+    void density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n,
+                double cx, double cy, double cz) override;
     Shape shape() const {return Shape::PARTICLE_BUNCH;}
     double length() const {return length_;}
-    bool bunched(){return true;}
+    bool bunched() const {return true;}
     bool corr() const {return v_x_corr_;}
     void set_corr(bool corr = true){v_x_corr_ = corr;}
     void set_buffer(int n) {buffer_ = n;}

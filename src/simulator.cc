@@ -75,8 +75,6 @@ double Simulator::calc_timestep(double time, int n_steps) const
 void Simulator::run(Beam& ion, Ions& ion_sample, EBeam& ebeam,
                     double time, int n_steps, int state_output_interval, int ion_output_interval)
 {
-    precondition(ion_sample);
-    
     double dt = calc_timestep(time, n_steps);
     if (!n_steps)
         n_steps = ceil(time / dt);

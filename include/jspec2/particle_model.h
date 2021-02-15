@@ -21,10 +21,8 @@ class ParticleModel: public Simulator {
     void update_beam_parameters(Beam &ion, Ions& ion_sample);
     virtual void adjust_rf_voltage() override { };
 //    virtual void save_ions(int i, Ions& ion_sample) override;
-    vector<double> rdn;
  public:
     using Simulator::Simulator;
-    void precondition(Ions& ion_sample);
 };
 
 #endif // IBS_HPP

@@ -38,16 +38,16 @@ std::ostream& operator<<(std::ostream& os, Colleague& clg);
 void create_e_tree(vector<double>& x, vector<double>& y, vector<double>& z, const long int n,
                   const int s, vector<Box> &tree, vector<long int>& list);
 
-void create_ion_tree(vector<double>& x, vector<double>& y, vector<double>& z, const int n, vector<Box> &tree,
+void create_ion_tree(const vector<double>& x, const vector<double>& y, const vector<double>& z, const int n, vector<Box> &tree,
                 vector<int>& list, int &idx_out);
 
-void density(vector<Box> &tree, vector<long int>& list_e, vector<double>& vx, vector<double>& vy,
-             vector<double>& vz, const long int ne,  vector<int>& list_i,
+void density(const vector<Box> &tree, const vector<long int>& list_e, const vector<double>& vx, const vector<double>& vy,
+             const vector<double>& vz, const long int ne, const vector<int>& list_i,
              int idx_out, const int ni, vector<double>& density_e,
              vector<double>& v_rms_t, vector<double>& v_rms_l) ;
 
-void density(vector<Box> &tree, vector<long int>& list_e, vector<double>& vx, vector<double>& vy,
-             vector<double>& vz, const long int ne,  vector<int>& list_i, int idx_out,
+void density(const vector<Box> &tree, const vector<long int>& list_e, const vector<double>& vx, const vector<double>& vy,
+             const vector<double>& vz, const long int ne, const vector<int>& list_i, int idx_out,
              const int ni, vector<double>& density_e, vector<double>& v_avg_z, vector<double>& v_rms_t,
              vector<double>& v_rms_l);
 

@@ -13,37 +13,37 @@
 
 void TurnByTurnModel::apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample) {
 //    ::edge_effect(ebeam, ion, ion_sample, cooler, dt);
-    vector<double>& x = ion_sample.cdnt(Phase::X);
-    vector<double>& y = ion_sample.cdnt(Phase::Y);
-    vector<double>& ds = ion_sample.cdnt(Phase::DS);
-    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
+    vector<double>& x = ion_sample.cdnt_x();
+    vector<double>& y = ion_sample.cdnt_y();
+    vector<double>& ds = ion_sample.cdnt_ds();
+    vector<double>& dp_p = ion_sample.cdnt_dp_p();
     double p0 = ion.p0_SI();
     int n = ion_sample.n_sample();
-    rdn.resize(n);
+    vector<double> field(n);
 
 //    if(ecool_solver.p_shift_) {
 //        double cx, cy, cz;
 //        ion_sample.center(cx, cy, cz);
-//        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, rdn, n, cx, cy, cz);
-//        else ebeam.edge_field(x, y, ds, rdn, n, cx, cy, cz);
+//        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, field, n, cx, cy, cz);
+//        else ebeam.edge_field(x, y, ds, field, n, cx, cy, cz);
 //
 //    }
 //    else {
-//        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, rdn, n);
-//        else ebeam.edge_field(cooler, x, y, z, rdn, n);
+//        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, field, n);
+//        else ebeam.edge_field(cooler, x, y, z, field, n);
 //    }
 
-    ebeam.edge_field(cooler, x, y, ds, rdn, n);
+    ebeam.edge_field(cooler, x, y, ds, field, n);
     double q = ion.charge_number()*k_e;
     double coef = q*ecool_solver->t_cooler()*cooler.section_number()/p0;
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
     for(int i=0; i<n; ++i) {
-        dp_p[i] *= (1+rdn.at(i)*coef/dp_p.at(i));
-//        dp_p.at(i) = dp_p.at(i)*exp(rdn.at(i)*coef/dp_p.at(i));
+        dp_p[i] *= (1+field.at(i)*coef/dp_p.at(i));
+//        dp_p.at(i) = dp_p.at(i)*exp(field.at(i)*coef/dp_p.at(i));
 
-//        double dp = rdn.at(i)*coef/dp_p.at(i);
+//        double dp = field.at(i)*coef/dp_p.at(i);
 //        dp_p[i] = dp>0.15?dp_p[i]*(1+dp):dp_p[i]*exp(dp);
     }
 }
@@ -58,13 +58,13 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     const double Qy = ring.qy();
     assert(Qx>0 && Qy>0 &&"Transverse tunes are needed for Turn_by_turn model");
     
-    vector<double>& x_bet = ion_sample.cdnt(Phase::X_BET);
-    vector<double>& xp_bet = ion_sample.cdnt(Phase::XP_BET);
-    vector<double>& y_bet = ion_sample.cdnt(Phase::Y_BET);
-    vector<double>& yp_bet = ion_sample.cdnt(Phase::YP_BET);
+    vector<double>& x_bet = ion_sample.cdnt_x_bet();
+    vector<double>& xp_bet = ion_sample.cdnt_xp_bet();
+    vector<double>& y_bet = ion_sample.cdnt_y_bet();
+    vector<double>& yp_bet = ion_sample.cdnt_yp_bet();
 
-    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
-    vector<double>& ds = ion_sample.cdnt(Phase::DS);
+    vector<double>& dp_p = ion_sample.cdnt_dp_p();
+    vector<double>& ds = ion_sample.cdnt_ds();
 
     int n_sample = ion_sample.n_sample();
     ion_sample.adjust_disp_inv();
@@ -104,8 +104,8 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     }
 
     //Longitudinal motion.
-//    vector<double>& dp_p = ion_sample.cdnt(Phase::DP_P);
-//    vector<double>& ds = ion_sample.cdnt(Phase::DS);
+//    vector<double>& dp_p = ion_sample.cdnt_dp_p();
+//    vector<double>& ds = ion_sample.cdnt_ds();
     if (ring.qs()>0||ring.rf_voltage()>0) {    //RF, synchrotron oscillation.
 //        assert(ring.tunes->qs>0||ring.rf->v>0&&"Longitudinal tune or RF cavity needed for Turn_by_turn model");
 

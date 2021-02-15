@@ -90,7 +90,6 @@ void set_datasink(DataSink *_datasink) { datasink = _datasink; }
 //    void set_overwrite(bool b) {overwrite = b; }
 //    void set_calc_lum(bool b) {calc_luminosity = b; }
 
-    virtual void precondition(Ions& ion_sample){};
     virtual void run(Beam& ion,
                      Ions& ion_sample,
                      EBeam& ebeam,
