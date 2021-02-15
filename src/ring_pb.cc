@@ -5,8 +5,8 @@
 #include <tuple>
 #include <vector>
 
-#include "../jspec2/include/ring.h"
-#include "../jspec2/include/beam.h"
+#include "jspec2/ring.h"
+#include "jspec2/beam.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -31,12 +31,11 @@ void init_ring(py::module& m ){
         .def("circ", &Lattice::circ);
 
     py::class_<Ring>(m, "Ring")
-        .def(py::init<double, Beam&>())
-        .def(py::init<Lattice&, Beam&>())
+        .def(py::init<const Lattice&, const Beam *>())
         .def_readwrite("tunes", &Ring::tunes)
         .def_readwrite("rf", &Ring::rf)
         .def("beta_s", &Ring::beta_s)
-        .def("cric", &Ring::circ)
+        .def("circ", &Ring::circ)
         .def("f0", &Ring::f0)
         .def("w0", &Ring::w0)
         .def("slip_factor", &Ring::slip_factor)

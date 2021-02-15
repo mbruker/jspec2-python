@@ -5,14 +5,17 @@
 #include <tuple>
 #include <vector>
 
-#include "../jspec2/include/force.h"
+#include "jspec2/force.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
 using std::vector;
 
 void init_force(py::module& m) {
+    py::class_<FrictionForceSolver>(m, "FrictionForceSolver");
+    py::class_<ForceNonMag>(m, "ForceNonMag");
     py::class_<ForcePark, FrictionForceSolver>(m, "ForcePark")
+        .def(py::init<>())
         .def("set_time_cooler", &ForcePark::set_time_cooler)
         .def("set_mag_field", &ForcePark::set_mag_field)
         .def("t_cooler", &ForcePark::t_cooler)

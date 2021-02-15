@@ -7,9 +7,9 @@
 #include <string>
 
 
-#include "../jspec2/include/cooler.h"
-#include "../jspec2/include/ions.h"
-#include "../jspec2/include/ring.h"
+#include "jspec2/cooler.h"
+#include "jspec2/ions.h"
+#include "jspec2/ring.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -33,6 +33,8 @@ void init_ions(py::module& m) {
         .value("DS", Phase::DS)
         .value("DP_P", Phase::DP_P);
 
+    py::class_<Ions>(m, "Ions");
+
     py::class_<Ions_MonteCarlo,Ions>(m, "Ions_MonteCarlo")
         .def(py::init<int>())
         .def(py::init<std::string, int, int, bool, int>())
@@ -42,11 +44,10 @@ void init_ions(py::module& m) {
         .def("get_cdnt", &Ions_MonteCarlo::get_cdnt)
         .def("cdnt", &Ions_MonteCarlo::cdnt)
         .def("get_twiss", &Ions_MonteCarlo::get_twiss)
-        .def("set_n_sample", &Ions_MonteCarlo::set_n_sample)
         .def("n_sample", &Ions_MonteCarlo::n_sample)
         .def("sample_type", &Ions_MonteCarlo::sample_type)
-        .def("set_twiss", py::overload_cast<Twiss&>(&Ions_MonteCarlo::set_twiss))
-        .def("set_twiss", py::overload_cast<Cooler&>(&Ions_MonteCarlo::set_twiss))
+        .def("set_twiss", py::overload_cast<const Twiss&>(&Ions_MonteCarlo::set_twiss))
+        .def("set_twiss", py::overload_cast<const Cooler&>(&Ions_MonteCarlo::set_twiss))
         .def("center", &Ions_MonteCarlo::center)
         .def("emit", py::overload_cast<double&, double&, double&>(&Ions_MonteCarlo::emit))
         .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
@@ -62,11 +63,10 @@ void init_ions(py::module& m) {
         .def("get_cdnt", &Ions_SingleParticle::get_cdnt)
         .def("cdnt", &Ions_SingleParticle::cdnt)
         .def("get_twiss", &Ions_SingleParticle::get_twiss)
-        .def("set_n_sample", &Ions_SingleParticle::set_n_sample)
         .def("n_sample", &Ions_SingleParticle::n_sample)
         .def("sample_type", &Ions_SingleParticle::sample_type)
-        .def("set_twiss", py::overload_cast<Twiss&>(&Ions_SingleParticle::set_twiss))
-        .def("set_twiss", py::overload_cast<Cooler&>(&Ions_SingleParticle::set_twiss))
+        .def("set_twiss", py::overload_cast<const Twiss&>(&Ions_SingleParticle::set_twiss))
+        .def("set_twiss", py::overload_cast<const Cooler&>(&Ions_SingleParticle::set_twiss))
         .def("center", &Ions_SingleParticle::center)
         .def("emit", py::overload_cast<double&, double&, double&>(&Ions_SingleParticle::emit))
         .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,

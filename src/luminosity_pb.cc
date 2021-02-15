@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-#include "../jspec2/include/luminosity.h"
+#include "jspec2/luminosity.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -39,12 +39,9 @@ void init_luminosity(py::module& m) {
         .def("set_particle_number", &LuminositySolver::set_particle_number)
         .def("set_bet_star", &LuminositySolver::set_bet_star)
         .def("set_bet_max", &LuminositySolver::set_bet_max)
-        .def("match", py::overload_cast<>(&LuminositySolver::match))
-        .def("match", py::overload_cast<int>(&LuminositySolver::match))
+        .def("match", &LuminositySolver::match)
         .def("set_focus_length", &LuminositySolver::set_focus_length)
         .def("set_aperture", &LuminositySolver::set_aperture)
-        .def("calc_bet_max", &LuminositySolver::calc_bet_max)
-        .def("adjust_bet", &LuminositySolver::adjust_bet)
         .def("set_adjust_bet", &LuminositySolver::set_adjust_bet)
         .def("set_aper_ratio", &LuminositySolver::set_aper_ratio)
         .def("set_use_ion_emit", &LuminositySolver::set_use_ion_emit)

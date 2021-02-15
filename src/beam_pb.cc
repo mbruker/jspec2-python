@@ -5,7 +5,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../jspec2/include/beam.h"
+#include "jspec2/beam.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -13,13 +13,13 @@ using std::vector;
 
 void init_beam(py::module &m) {
     py::class_<Beam>(m, "Beam")
-        .def("set_emit_nx", (int (Beam::*)(double)) &Beam::set_emit_nx, "x"_a)
-        .def("set_emit_ny", (int (Beam::*)(double)) &Beam::set_emit_ny, "x"_a)
-        .def("set_emit_x", (int (Beam::*)(double)) &Beam::set_emit_x, "x"_a)
-        .def("set_emit_y", (int (Beam::*)(double)) &Beam::set_emit_y, "x"_a)
-        .def("set_dp_p", (int (Beam::*)(double)) &Beam::set_dp_p, "x"_a)
-        .def("set_center", (int (Beam::*)(double, double, double)) &Beam::set_center, "cx"_a, "cy"_a, "cz"_a)
-        .def("set_center", (int (Beam::*)(int, double)) &Beam::set_center, "i"_a, "x"_a)
+        .def("set_emit_nx", (void (Beam::*)(double)) &Beam::set_emit_nx, "x"_a)
+        .def("set_emit_ny", (void (Beam::*)(double)) &Beam::set_emit_ny, "x"_a)
+        .def("set_emit_x", (void (Beam::*)(double)) &Beam::set_emit_x, "x"_a)
+        .def("set_emit_y", (void (Beam::*)(double)) &Beam::set_emit_y, "x"_a)
+        .def("set_dp_p", (void (Beam::*)(double)) &Beam::set_dp_p, "x"_a)
+        .def("set_center", (void (Beam::*)(double, double, double)) &Beam::set_center, "cx"_a, "cy"_a, "cz"_a)
+        .def("set_center", (void (Beam::*)(int, double)) &Beam::set_center, "i"_a, "x"_a)
         .def("charge_number", &Beam::charge_number)
         .def("mass", &Beam::mass)
         .def("kinetic_energy", &Beam::kinetic_energy)
@@ -34,7 +34,7 @@ void init_beam(py::module &m) {
         .def("sigma_s", &Beam::sigma_s)
         .def("r", &Beam::r)
         .def("particle_number", &Beam::particle_number)
-        .def("mass_number", &Beam::mass_number)
+//        .def("mass_number", &Beam::mass_number)
         .def("p0_SI", &Beam::p0_SI)
         .def("p0", &Beam::p0)
         .def("bunched", &Beam::bunched)
@@ -89,7 +89,11 @@ void init_beam(py::module &m) {
              double, double, double>(&EBeam::multi_density));
 
     py::class_<UniformCylinder, EBeam>(m, "UniformCylinder")
-        .def(py::init<double, double, double>())
+        .def(py::init<double, double, double>(),
+	    py::arg("current"),
+	    py::arg("radius"),
+	    py::arg("neutralisation") = 2
+	)
         .def("density", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&, int>(&UniformCylinder::density))
         .def("density", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&, int,
              double, double, double>(&UniformCylinder::density))
@@ -194,13 +198,13 @@ void init_beam(py::module &m) {
         .value("VARY_Z", Temperature::VARY_Z);
 
     py::enum_<EBeamV>(m, "EBeamV", py::arithmetic())
-        .value("", EBeamV::TPR_TR)
-        .value("", EBeamV::TPR_L)
-        .value("", EBeamV::V_RMS_TR)
-        .value("", EBeamV::V_RMS_L)
-        .value("", EBeamV::V_AVG_X)
-        .value("", EBeamV::V_AVG_Y)
-        .value("", EBeamV::V_AVG_L);
+        .value("TPR_TR", EBeamV::TPR_TR)
+        .value("TPR_L", EBeamV::TPR_L)
+        .value("V_RMS_TR", EBeamV::V_RMS_TR)
+        .value("V_RMS_L", EBeamV::V_RMS_L)
+        .value("V_AVG_X", EBeamV::V_AVG_X)
+        .value("V_AVG_Y", EBeamV::V_AVG_Y)
+        .value("V_AVG_L", EBeamV::V_AVG_L);
 
 //    py::enum_<EdgeEffect>(m, "EdgeEffect", py::arithmetic())
 //        .value("Rising", EdgeEffect::Rising)

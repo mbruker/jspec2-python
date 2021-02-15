@@ -5,8 +5,8 @@
 #include <tuple>
 #include <vector>
 
-#include "../jspec2/include/ibs.h"
-#include "../jspec2/include/ring.h"
+#include "jspec2/ibs.h"
+#include "jspec2/ring.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -17,8 +17,16 @@ void init_ibs(py::module& m) {
         .value("MARTINI", IBSModel::MARTINI)
         .value("BM", IBSModel::BM);
 
+    py::class_<IBSSolver>(m, "IBSSolver");
+
     py::class_<IBSSolver_Martini, IBSSolver>(m, "IBSSolver_Martini")
-        .def(py::init<int, int, int, double, double>())
+        .def(py::init<int, int, int, double, double>(),
+            py::arg("nu"),
+            py::arg("nv"),
+            py::arg("nz"),
+            py::arg("log_c"),
+            py::arg("k")
+        )
         .def("nu", &IBSSolver_Martini::nu)
         .def("nv", &IBSSolver_Martini::nv)
         .def("nz", &IBSSolver_Martini::nz)
