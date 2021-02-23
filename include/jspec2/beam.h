@@ -101,25 +101,25 @@ public:
     }
     Beam(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
         double sigma_s, double n_particle);
-    Beam(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
-        double n_particle);
 };
 
-enum class Shape {UNIFORM_CYLINDER, GAUSSIAN_BUNCH, UNIFORM_BUNCH, GAUSSIAN_CYLINDER, ELLIPTIC_UNIFORM_BUNCH,
-    UNIFORM_HOLLOW, UNIFORM_HOLLOW_BUNCH, PARTICLE_BUNCH};
-
-enum class Velocity {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
-enum class Temperature {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
-enum class EBeamV {TPR_TR, TPR_L, V_RMS_TR, V_RMS_L, V_AVG_X, V_AVG_Y, V_AVG_L};
-enum class EdgeEffect {Rising, Falling};
 
 class EBeam {
+public:
+    enum class Shape {UNIFORM_CYLINDER, GAUSSIAN_BUNCH, UNIFORM_BUNCH, GAUSSIAN_CYLINDER, ELLIPTIC_UNIFORM_BUNCH,
+        UNIFORM_HOLLOW, UNIFORM_HOLLOW_BUNCH, PARTICLE_BUNCH};
+    
+    enum class Velocity {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
+    enum class Temperature {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
+    enum class EdgeEffect {Rising, Falling};
 protected:
     double kinetic_energy_ = 0;
     double gamma_ = 1;
     double beta_ = 0;
     bool bunched_ = true;
-    double center_[3] = {0,0,0};
+    double center_x_ = 0;
+    double center_y_ = 0;
+    double center_z_ = 0;
     double neutralisation_ = 2;
     Velocity velocity_ = Velocity::CONST;
     Temperature temperature_ = Temperature::CONST;
@@ -163,17 +163,18 @@ public:
             beta_ = sqrt(gamma_*gamma_-1)/gamma_;}
     void set_gamma(double g){gamma_ = g; beta_ = sqrt(g*g-1)/g; kinetic_energy_ = (g-1)*k_me;}
     void set_beta(double b){beta_ = b; gamma_ = 1/sqrt(1-b*b); kinetic_energy_ = (gamma_-1)*k_me;}
-    int set_center(double cx, double cy, double cz){center_[0] = cx; center_[1] = cy; center_[2] = cz; return 0;}
-    void center(double &cx, double &cy, double &cz) const {cx = center_[0]; cy = center_[1]; cz = center_[2];}
-    double center(int i) const { if (i<3&&i>-1) return center_[i]; else perror("Error index for electron beam center!"); return 1.0;}
-    void set_center(int i, double x){if(i<3&&i>-1) center_[i]=x; else perror("Error index for electron beam center!");}
+    void set_center(double cx, double cy, double cz);
+//    void center(double &cx, double &cy, double &cz) const {cx = center_[0]; cy = center_[1]; cz = center_[2];}
+//    double center(int i) const { if (i<3&&i>-1) return center_[i]; else perror("Error index for electron beam center!"); return 1.0;}
+//    void set_center(int i, double x){if(i<3&&i>-1) center_[i]=x; else perror("Error index for electron beam center!");}
     void set_tpr(double tpr_tr, double trp_long);
     void set_v_rms(double v_rms_tr, double v_rms_long);
     void set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long);
     void set_neutral(double x){neutralisation_ = x;}
     void set_multi_bunches(bool b){multi_bunches_ = b;}
     bool multi_bunches() const {return multi_bunches_;}
-    const vector<double>& get_v(EBeamV v) const;
+    const vector<double>& get_v_rms_tr() const { return v_rms_t; };
+    const vector<double>& get_v_rms_l() const { return v_rms_l; }
     virtual void edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n){};
     virtual void edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,

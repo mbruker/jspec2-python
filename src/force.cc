@@ -25,15 +25,15 @@ double FrictionForceSolver::max_impact_factor(double v_dlt, int charge_number,do
     return rho_max;
 }
 
-void ForcePark::rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, Temperature tpr,
+void ForcePark::rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, EBeam::Temperature tpr,
                           int ion_number, vector<double>& dlt2_eff_e, vector<double>& rho_lamor) {
     switch(tpr) {
-        case Temperature::CONST: {
+        case EBeam::Temperature::CONST: {
             dlt2_eff_e.push_back(v_rms_l[0]*v_rms_l[0]+v2_eff_e);
             rho_lamor.push_back(k_me*1e6*v_rms_t[0]/(mag_field*k_c*k_c));
             break;
         }
-        case Temperature::VARY: {
+        case EBeam::Temperature::VARY: {
             dlt2_eff_e.resize(ion_number);
             rho_lamor.resize(ion_number);
             for(int i=0; i<ion_number; ++i) {
@@ -42,10 +42,10 @@ void ForcePark::rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const ve
             }
             break;
         }
-        case Temperature::USER_DEFINE: {
+        case EBeam::Temperature::USER_DEFINE: {
             break;
         }
-        case Temperature::SPACE_CHARGE: {
+        case EBeam::Temperature::SPACE_CHARGE: {
             break;
         }
         default: {
@@ -55,52 +55,36 @@ void ForcePark::rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const ve
 
 }
 
-double ForcePark::dlt(Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i) {
-    double dlt = 0;
+constexpr double ForcePark::dlt(EBeam::Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i)
+{
     switch(tpr) {
-        case Temperature::CONST: {
-            dlt = v2+dlt2_eff_e[0];
-            break;
-        }
-        case Temperature::VARY: {
-            dlt = v2+dlt2_eff_e[i];
-            break;
-        }
-        case Temperature::USER_DEFINE: {
-            break;
-        }
-        case Temperature::SPACE_CHARGE: {
-            break;
-        }
-        default: {
-            break;
-        }
+        case EBeam::Temperature::CONST:
+            return v2+dlt2_eff_e[0];
+        case EBeam::Temperature::VARY:
+            return v2+dlt2_eff_e[i];
+        case EBeam::Temperature::USER_DEFINE:
+            return 0;
+        case EBeam::Temperature::SPACE_CHARGE:
+            return 0;
+        default:
+            return 0;
     }
-    return dlt;
 }
 
-double ForcePark::lc(Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i) {
-    double lc = 0;
+constexpr double ForcePark::lc(EBeam::Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i)
+{
     switch(tpr) {
-        case Temperature::CONST: {
-            lc = log((rho_max+rho_min+rho_lamor[0])/(rho_min+rho_lamor[0]));
-            break;
-        }
-        case Temperature::VARY: {
-            lc = log((rho_max+rho_min+rho_lamor[i])/(rho_min+rho_lamor[i]));
-            break;
-        }
-        case Temperature::USER_DEFINE: {
-            break;
-        }
-        case Temperature::SPACE_CHARGE: {
-            break;
-        }
-        default: {
-            break;
-        }
+        case EBeam::Temperature::CONST:
+            return log((rho_max+rho_min+rho_lamor[0])/(rho_min+rho_lamor[0]));
+        case EBeam::Temperature::VARY:
+            return log((rho_max+rho_min+rho_lamor[i])/(rho_min+rho_lamor[i]));
+        case EBeam::Temperature::USER_DEFINE:
+            return 0;
+        case EBeam::Temperature::SPACE_CHARGE:
+            return 0;
+        default:
+            return 0;
     }
-    return lc;
 }
 
 void ForcePark::friction_force(int charge_number, int ion_number, const vector<double>& v_tr, const vector<double>& v_long, const vector<double>& density_e,
@@ -114,7 +98,7 @@ void ForcePark::friction_force(int charge_number, int ion_number, const vector<d
     vector<double> dlt2_eff_e;
     vector<double> rho_lamor;
     auto tpr = ebeam.temperature();
-    rho_lamor_dlt2_eff_e(v2_eff_e, mag_field, ebeam.get_v(EBeamV::V_RMS_L), ebeam.get_v(EBeamV::V_RMS_TR), tpr, ion_number,
+    rho_lamor_dlt2_eff_e(v2_eff_e, mag_field, ebeam.get_v_rms_l(), ebeam.get_v_rms_tr(), tpr, ion_number,
         dlt2_eff_e, rho_lamor);
 
     force_tr.resize(ion_number);
@@ -183,14 +167,14 @@ void ForceNonMag::friction_force(int charge_number, int ion_number, const vector
     double rho_min_const = this->rho_min_const(charge_number);
     auto tpr = ebeam.temperature();
 
-    const vector<double>& ve_rms_l = ebeam.get_v(EBeamV::V_RMS_L);
-    const vector<double>& ve_rms_tr = ebeam.get_v(EBeamV::V_RMS_TR);
+    const vector<double>& ve_rms_l = ebeam.get_v_rms_l();
+    const vector<double>& ve_rms_tr = ebeam.get_v_rms_tr();
 
     force_tr.resize(ion_number);
     force_long.resize(ion_number);
 
     switch(tpr) {
-    case Temperature::CONST: {
+    case EBeam::Temperature::CONST: {
         double ve_l = ve_rms_l.at(0);
         double ve_tr = ve_rms_tr.at(0);
         double ve2 = ve_l*ve_l + ve_tr*ve_tr;
@@ -217,7 +201,7 @@ void ForceNonMag::friction_force(int charge_number, int ion_number, const vector
         }
         break;
     }
-    case Temperature::VARY: {
+    case EBeam::Temperature::VARY: {
         #ifdef _OPENMP
             #pragma omp parallel for
         #endif // _OPENMP
@@ -273,7 +257,7 @@ void ForceNonMagMeshkov::force(double v, double v_tr, double v_l, double v2, dou
     }
 }
 
-double ForceNonMagDerbenev::rho_max_ve_tr(double ve_tr, double ne) {
+constexpr double ForceNonMagDerbenev::rho_max_ve_tr(double ve_tr, double ne) {
     return sqrt(ve_tr*ve_tr/(k_wp*ne));
 }
 
@@ -533,7 +517,7 @@ double ForceNonMagNumeric3D::outter_integrand(double vtr, void* params) {
 
 void ForceNonMagNumeric3D::init(const EBeam& ebeam) {
     auto tpr = ebeam.temperature();
-    if(tpr==Temperature::CONST) {
+    if(tpr==EBeam::Temperature::CONST) {
         const_tmpr = true;
     }
     else {
@@ -789,11 +773,11 @@ void ForceMeshkov::friction_force(int charge_number, int ion_number,
     force_tr.resize(ion_number);
     force_long.resize(ion_number);
     auto tpr = ebeam.temperature();
-    const vector<double>& ve_rms_l = ebeam.get_v(EBeamV::V_RMS_L);
-    const vector<double>& ve_rms_tr =  ebeam.get_v(EBeamV::V_RMS_TR);
+    const vector<double>& ve_rms_l = ebeam.get_v_rms_l();
+    const vector<double>& ve_rms_tr =  ebeam.get_v_rms_tr();
 
     switch(tpr) {
-    case Temperature::CONST: {
+    case EBeam::Temperature::CONST: {
         double ve_l = ve_rms_l.at(0);
         double ve_tr = ve_rms_tr.at(0);
         double ve2_tr = ve_tr*ve_tr;
@@ -816,7 +800,7 @@ void ForceMeshkov::friction_force(int charge_number, int ion_number,
         }
         break;
     }
-    case Temperature::VARY: {
+    case EBeam::Temperature::VARY: {
         #ifdef _OPENMP
         #pragma omp parallel for
         #endif // _OPENMP
@@ -897,7 +881,7 @@ void ForceDSM::calc_exp_ve2(double ve2_l, vector<double>& t2) {
 
 void ForceDSM::init(const EBeam& ebeam) {
     auto tpr = ebeam.temperature();
-    if(tpr==Temperature::CONST) {
+    if(tpr==EBeam::Temperature::CONST) {
         const_tpr = true;
     }
     else {
@@ -1107,11 +1091,11 @@ void ForceDSM::friction_force(int charge_number, int ion_number,
     force_tr.resize(ion_number);
     force_long.resize(ion_number);
     auto tpr = ebeam.temperature();
-    const vector<double>& ve_rms_l = ebeam.get_v(EBeamV::V_RMS_L);
-    const vector<double>& ve_rms_tr =  ebeam.get_v(EBeamV::V_RMS_TR);
+    const vector<double>& ve_rms_l = ebeam.get_v_rms_l();
+    const vector<double>& ve_rms_tr =  ebeam.get_v_rms_tr();
 
     switch(tpr) {
-    case Temperature::CONST: {
+    case EBeam::Temperature::CONST: {
         double ve_l = ve_rms_l.at(0);
         double ve_tr = ve_rms_tr.at(0);
         double ve2_tr = ve_tr*ve_tr;
@@ -1139,7 +1123,7 @@ void ForceDSM::friction_force(int charge_number, int ion_number,
     std::cout << "Force mag DSM took " << time/std::chrono::microseconds(1) << " us to run.\n";
         break;
     }
-    case Temperature::VARY: {
+    case EBeam::Temperature::VARY: {
 
         for(int i=0; i<ion_number; ++i) {
             if(iszero(density.at(i))) {

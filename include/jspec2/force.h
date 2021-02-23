@@ -25,7 +25,7 @@ protected:
 public:
     void set_time_cooler(double t){time_cooler = t;}
     void set_mag_field(double x){mag_field = x;}
-    double t_cooler(){return time_cooler;}
+    double t_cooler() const {return time_cooler;}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
             const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
@@ -36,10 +36,10 @@ private:
     static constexpr double k_f = -4*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
     double t_eff = 0; //Effective temperature.
     double v_eff = 0; //Effective velocity.
-    void rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, Temperature tpr,
+    void rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, EBeam::Temperature tpr,
                           int ion_number, vector<double>& dlt2_eff_e, vector<double>& rho_lamor);
-    double dlt(Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i);
-    double lc(Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i);
+    constexpr double dlt(EBeam::Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i);
+    constexpr double lc(EBeam::Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i);
 public:
     void set_t_eff(double x){t_eff = x; v_eff = sqrt(t_eff*k_c*k_c/(k_me*1e6));}
     void set_v_eff(double v){v_eff = v; t_eff = v_eff*v_eff*k_me*1e6/(k_c*k_c);}
@@ -54,7 +54,7 @@ protected:
     virtual double f_const(int charge_number) const {return charge_number*charge_number*k_f;}
     static constexpr double rho_min_const(int charge_number) {return charge_number*k_rho_min;}
     static constexpr double rho_max_1(int charge_number, double density_e){return pow(3*charge_number/density_e, 1.0/3);}
-    double rho_max_2(double v) const {return v*time_cooler;};
+    double rho_max_2(double v) const {return v*time_cooler;}
     double rho_max(int charge_number, double v2, double ve2, double ne) const;
     virtual void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                        double f_const,double rho_min_const, int charge_number, double ne,
@@ -69,7 +69,7 @@ public:
 
 class ForceNonMagDerbenev: public ForceNonMag {
 private:
-    double rho_max_ve_tr(double ve_tr, double ne);
+    constexpr double rho_max_ve_tr(double ve_tr, double ne);
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
                                double& force_tr, double& force_l) override;

@@ -26,38 +26,16 @@ Beam::Beam(int charge_number, double mass, double kinetic_energy, double emit_nx
     p0_ = gamma_*mass_*1e6*k_e*beta_/k_c;
 }
 
-// TODO: Get rid of unnecessary second constructor.
-Beam::Beam(int charge_number, double mass, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
-           double n_particle): charge_number_(charge_number), mass_(mass), kinetic_energy_(kinetic_energy),
-           emit_nx_(emit_nx), emit_ny_(emit_ny), dp_p_(dp_p), particle_number_(n_particle) {
-    gamma_ = 1+kinetic_energy_/mass_;
-    beta_ = sqrt(gamma_*gamma_-1)/gamma_;
-    r_ = k_ke*charge_number_*charge_number_*k_e*1e-6/mass_;
-    bunched_ = false;
-    sigma_s_ = -1;
-    emit_x_ = emit_nx_/(beta_*gamma_);
-    emit_y_ = emit_ny_/(beta_*gamma_);
-    energy_spread_ = beta_*beta_*dp_p_;
-    dv_v_ = dp_p_/(gamma_*gamma_);
-    p0_ = gamma_*mass_*1e6*k_e*beta_/k_c;
-}
-
 void Beam::set_center(int i, double x) {
     assert(i < 3 && "Error index for electron beam center!");
     center_[i] = x;
 }
 
-const vector<double>& EBeam::get_v(EBeamV v) const {
-    switch(v) {
-    case EBeamV::TPR_TR: return tpr_t;
-    case EBeamV::TPR_L: return tpr_l;
-    case EBeamV::V_RMS_TR: return v_rms_t;
-    case EBeamV::V_RMS_L: return v_rms_l;
-    case EBeamV::V_AVG_X: return v_avg_x;
-    case EBeamV::V_AVG_Y: return v_avg_y;
-    case EBeamV::V_AVG_L: return v_avg_l;
-    default:perror("Wrong phase coordinate selected!");return tpr_t;
-    }
+void EBeam::set_center(double cx, double cy, double cz)
+{
+    center_x_ = cx;
+    center_y_ = cy;
+    center_z_ = cz;
 }
 
 void EBeam::set_tpr(double tpr_tr, double tpr_long) {
@@ -122,9 +100,9 @@ void UniformCylinder::density(const vector<double>& x, const vector<double>& y, 
     double density = current_/(k_pi*r2*nq*k_e*beta_*k_c);
     std::fill(ne.begin(), ne.end(), 0);
     //ion_center - electron_center
-    cx -= center_[0];
-    cy -= center_[1];
-    cz -= center_[2];
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     for(int i=0; i<n_particle; ++i){
         if((x.at(i)+cx)*(x.at(i)+cx)+(y.at(i)+cy)*(y.at(i)+cy)<=r2) ne.at(i) = density;
     }
@@ -163,9 +141,9 @@ void UniformHollow::density(const vector<double>& x, const vector<double>& y, co
     if (density<0) density *= -1;
     std::fill(ne.begin(),ne.end(),0);
      //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     for(int i=0; i<n_particle; ++i){
         double r2 = (x[i]+cx)*(x[i]+cx)+(y[i]+cy)*(y[i]+cy);
         if(r2<=out_r2 && r2>=in_r2) ne[i] = density;
@@ -209,9 +187,9 @@ void UniformHollowBunch::density(const vector<double>& x, const vector<double>& 
         density = 0;
     if (density<0) density *= -1;
     //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     std::fill(ne.begin(),ne.end(),0);
 
     double left_end = -0.5*length_;
@@ -247,9 +225,9 @@ void UniformBunch::density(const vector<double>& x, const vector<double>& y, con
     double density = current_/(k_pi*r2*nq*k_e*this->beta()*k_c);
 
     //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     std::fill(ne.begin(),ne.end(),0);
     double left_end = -0.5*length_;
     double right_end = 0.5*length_;
@@ -283,9 +261,9 @@ void EllipticUniformBunch::density(const vector<double>& x, const vector<double>
     double density = current_/(k_pi*rh_*rv_*nq*k_e*this->beta()*k_c);
 
     //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     std::fill(ne.begin(),ne.end(),0);
     double inv_rh2 = 1.0/(rh_*rh_);
     double inv_rv2 = 1.0/(rv_*rv_);
@@ -316,9 +294,9 @@ void GaussianBunch::density(const vector<double>& x, const vector<double>& y, co
     double sigma_y2 = -1/(2*sigma_y_*sigma_y_);
     double sigma_s2 = -1/(2*sigma_s_*sigma_s_);
     //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     for(int i=0; i<n_particle; ++i){
         ne[i] = amp*exp((x[i]+cx)*(x[i]+cx)*sigma_x2+(y[i]+cy)*(y[i]+cy)*sigma_y2+(z[i]+cz)*(z[i]+cz)*sigma_s2);
     }
@@ -360,9 +338,9 @@ void ParticleBunch::density(const vector<double>& x, const vector<double>& y, co
 void ParticleBunch::density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
                        double cz) {
     double rate = n_electron_/n_;
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     vector<double> x_shifted = x;
     vector<double> y_shifted = y;
     vector<double> z_shifted = z;
@@ -418,9 +396,9 @@ void UniformBunch::edge_field(const Cooler& cooler, const vector<double>&x, cons
     std::fill(field.begin(), field.end(), 0);
     double r2 = radius_*radius_;
     //ion_center - electron_center
-    cx -= this->center(0);
-    cy -= this->center(1);
-    cz -= this->center(2);
+    cx -= center_x_;
+    cy -= center_y_;
+    cz -= center_z_;
     for(int i=0; i<n; ++i) {
         if((x[i]+cx)*(x[i]+cx)+(y[i]+cy)*(y[i]+cy)<=r2) {
             if((z[i]+cz)>falling_end && (z[i]+cz)<left_end) field.at(i) = fld_falling;
