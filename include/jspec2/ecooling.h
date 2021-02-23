@@ -18,8 +18,6 @@ class Ring;
 using std::vector;
 using std::initializer_list;
 
-enum class ECoolRateScratch {XP_BET, YP_BET, XP, YP, DP_P, V_TR, V_LONG, FORCE_X, FORCE_Y, FORCE_Z};
-
 class ECoolRate{
 protected:
     double bunch_separate_ = 0;
@@ -34,11 +32,11 @@ protected:
     vector<double> force_x, force_y, force_z;
     void electron_density(const Ions& ion_sample, EBeam &ebeam);
     void init_scratch(int n_sample);
-    void space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample);
+    void space_to_dynamic(int n_sample, const Beam &ion, Ions &ion_sample);
     void beam_frame(int n_sample, double gamma_e);
     void force(int n_sample, const Beam &ion, const EBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
     void restore_velocity(int n_sample, EBeam &ebeam);
-    void bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
+    void bunched_to_coasting(const Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
     void lab_frame(int n_sample, double gamma_e);
     void force_distribute(int n_sample, const Beam &ion, const Ions &ion_sample);
     void apply_kick(int n_sample, const Beam &ion, const Ions& ion_sample);
@@ -57,7 +55,7 @@ public:
     
     double t_cooler() const {return t_cooler_;}
     void set_n_long_sample(int n){n_long_sample_ = n;}
-    rate3d ecool_rate(FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler, EBeam &ebeam, Ring &ring);
+    rate3d ecool_rate(FrictionForceSolver &force, const Beam &ion, Ions &ptcl, const Cooler &cooler, EBeam &ebeam, const Ring &ring);
 };
 
 class ForceCurve: public ECoolRate {

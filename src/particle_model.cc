@@ -152,8 +152,7 @@ void ParticleModel::move_particles(Beam& ion, Ions& ion_sample) {
 }
 
 void ParticleModel::update_beam_parameters(Beam &ion, Ions& ion_sample) {
-    double emit_x, emit_y, emit_z;
-    ion_sample.emit(emit_x, emit_y, emit_z);
+    const auto [emit_x, emit_y, emit_z] = ion_sample.emit();
     ion.set_emit_x(emit_x);
     ion.set_emit_y(emit_y);
 

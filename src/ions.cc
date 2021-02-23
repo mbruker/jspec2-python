@@ -33,40 +33,38 @@ void Ions::save_ions_sdds(string filename) const {
 }
 
 //Calculate the transverse emittance statistically
-double emit(vector<double>& x, vector<double>&xp, int n) {
-    double emit, x_mean, xp_mean, dlt2_x, dlt2_xp, dlt_xxp;
-    x_mean = 0;
-    xp_mean = 0;
+double Ions_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const vector<double>&xp) const
+{
+    const auto n = x.size();
+    double x_mean = 0, xp_mean = 0, dlt2_x = 0, dlt2_xp = 0, dlt_xxp = 0;
 
     #ifdef _OPENMP
         #pragma omp parallel for reduction(+:x_mean,xp_mean)
     #endif // _OPENMP
     for(int i=0; i<n; ++i){
         x_mean += x[i];
-       xp_mean += xp[i];
+        xp_mean += xp[i];
     }
     x_mean /= n;
     xp_mean /= n;
 
-    dlt2_x = 0;
-    dlt2_xp = 0;
-    dlt_xxp = 0;
     #ifdef _OPENMP
         #pragma omp parallel for reduction(+:dlt2_x,dlt2_xp,dlt_xxp)
     #endif // _OPENMP
     for(int i=0; i<n; ++i){
-        double x_adj = x[i]-x_mean;
-        double xp_adj = xp[i]-xp_mean;
+        const double x_adj = x[i]-x_mean;
+        const double xp_adj = xp[i]-xp_mean;
         dlt2_x += x_adj*x_adj;
         dlt2_xp += xp_adj*xp_adj;
         dlt_xxp += x_adj*xp_adj;
     }
-    emit = sqrt(dlt2_x*dlt2_xp-dlt_xxp*dlt_xxp)/n;
-    return emit;
+    return sqrt(dlt2_x*dlt2_xp-dlt_xxp*dlt_xxp)/n;
 }
 
 //Calculate the longitudinal emittance as (dp/p)^2/n
-double emit_p(vector<double>& dp_p, int n){
+double Ions_MonteCarlo::statistical_emittance_l(const vector<double>& dp_p) const
+{
+    const auto n = dp_p.size();
     double emit_p = 0;
     double dp_p_mean = 0;
     #ifdef _OPENMP
@@ -80,7 +78,7 @@ double emit_p(vector<double>& dp_p, int n){
         #pragma omp parallel for reduction(+:emit_p)
     #endif // _OPENMP
     for(int i=0; i<n; ++i){
-        double dp_p_adj = dp_p[i] - dp_p_mean;
+        const double dp_p_adj = dp_p[i] - dp_p_mean;
         emit_p += dp_p_adj*dp_p_adj;
     }
     emit_p /= n;
@@ -101,22 +99,29 @@ void adjust_disp(double dx, vector<double>& x_bet, vector<double>& dp_p, vector<
     for(int i=0; i<n; ++i) x[i] = x_bet[i]+dx*dp_p[i];
 }
 
-void Ions_MonteCarlo::emit(vector<double>& x_bet, vector<double>& xp_bet, vector<double>& y_bet, vector<double>& yp_bet,
-                      vector<double>& dp_p, vector<double>& ds, double& emit_x, double& emit_y, double& emit_s) {
-    int n_sample = n_;
-    emit_x = ::emit(x_bet, xp_bet, n_sample);
-    emit_y = ::emit(y_bet, yp_bet, n_sample);
-    emit_s = ::emit_p(dp_p, n_sample);
+array<double,3> Ions_MonteCarlo::emit(const vector<double>& x_bet, const vector<double>& xp_bet, const vector<double>& y_bet, const vector<double>& yp_bet,
+                      const vector<double>& dp_p, const vector<double>& ds) const
+{
+    double emit_x = statistical_emittance_tr(x_bet, xp_bet);
+    double emit_y = statistical_emittance_tr(y_bet, yp_bet);
+    double emit_s = statistical_emittance_l(dp_p);
     if(bunched_)
-        emit_s += emit_p(ds, n_sample)/(beta_s_*beta_s_);
+        emit_s += statistical_emittance_l(ds)/(beta_s_*beta_s_);
+    return {emit_x, emit_y, emit_s};
 }
 
-void Ions_MonteCarlo::emit(double& emit_x, double& emit_y, double& emit_s){
-    emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds, emit_x, emit_y, emit_s);
+array<double,3> Ions_MonteCarlo::emit() const
+{
+    return emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds);
 }
 
-void Ions_SingleParticle::emit(vector<double>& x_bet, vector<double>& xp_bet, vector<double>& y_bet, vector<double>& yp_bet,
-                      vector<double>& dp_p, vector<double>& ds, double& emit_x, double& emit_y, double& emit_s) {
+array<double,3> Ions_SingleParticle::emit(const vector<double>& x_bet,
+                                          const vector<double>& xp_bet,
+                                          const vector<double>& y_bet,
+                                          const vector<double>& yp_bet,
+                                          const vector<double>& dp_p,
+                                          const vector<double>& ds) const
+{
     double alf_x = twiss.alf_x;
     double alf_y = twiss.alf_y;
     double beta_x = twiss.bet_x;
@@ -124,9 +129,9 @@ void Ions_SingleParticle::emit(vector<double>& x_bet, vector<double>& xp_bet, ve
     double gamma_x = (1+alf_x*alf_x)/beta_x;
     double gamma_y = (1+alf_y*alf_y)/beta_y;
 
-    emit_x = 0;
-    emit_y = 0;
-    emit_s = 0;
+    double emit_x = 0;
+    double emit_y = 0;
+    double emit_s = 0;
     int n_sample = n_;
     double inv_beta_s2 = 0;
     if(bunched_) inv_beta_s2 = 1/(beta_s_*beta_s_);
@@ -139,10 +144,13 @@ void Ions_SingleParticle::emit(vector<double>& x_bet, vector<double>& xp_bet, ve
     emit_x /= 2*n_sample;
     emit_y /= 2*n_sample;
     emit_s /= n_sample;
+    
+    return {emit_x, emit_y, emit_s};
 }
 
-void Ions_SingleParticle::emit(double& emit_x, double& emit_y, double& emit_s) {
-    emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds, emit_x, emit_y, emit_s);
+array<double,3> Ions_SingleParticle::emit() const
+{
+    return emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds);
 }
 
 //Generate Gaussian random number in S frame with given Twiss parameters

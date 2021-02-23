@@ -27,10 +27,11 @@ void init_ions(py::module& m) {
         .def("save_ions_sdds", &Ions_MonteCarlo::save_ions_sdds)
         .def("get_twiss", &Ions_MonteCarlo::get_twiss)
         .def("n_sample", &Ions_MonteCarlo::n_sample)
-        .def("center", &Ions_MonteCarlo::center)
-        .def("emit", py::overload_cast<double&, double&, double&>(&Ions_MonteCarlo::emit))
-        .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
-                vector<double>&, double&, double&, double&>(&Ions_MonteCarlo::emit))
+// TODO What the emittance getters ought to look like will become clear
+//      once we have a consistent way of storing the current emittance
+//        .def("emit", py::overload_cast<double&, double&, double&>(&Ions_MonteCarlo::emit))
+//        .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
+//                vector<double>&, double&, double&, double&>(&Ions_MonteCarlo::emit))
         .def("create_samples", &Ions_MonteCarlo::create_samples);
 
     py::class_<Ions_SingleParticle,Ions>(m, "Ions_SingleParticle")
@@ -41,14 +42,8 @@ void init_ions(py::module& m) {
         .def("save_ions_sdds", &Ions_SingleParticle::save_ions_sdds)
         .def("get_twiss", &Ions_SingleParticle::get_twiss)
         .def("n_sample", &Ions_SingleParticle::n_sample)
-        .def("center", &Ions_SingleParticle::center)
-        .def("emit", py::overload_cast<double&, double&, double&>(&Ions_SingleParticle::emit))
-        .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
-                vector<double>&, double&, double&, double&>(&Ions_SingleParticle::emit))
+//        .def("emit", py::overload_cast<double&, double&, double&>(&Ions_SingleParticle::emit))
+//        .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
+//                vector<double>&, double&, double&, double&>(&Ions_SingleParticle::emit))
         .def("create_samples", &Ions_SingleParticle::create_samples);
-
-    m.def("emit_p", &emit_p);
-    m.def("emit", &emit);
-    m.def("adjust_disp", &adjust_disp);
-    m.def("adjust_disp_inv", &adjust_disp_inv);
 }

@@ -31,8 +31,6 @@ class Beam{
     double particle_number_; //number of particles
     double p0_; //momentum in kg*m/s
     bool bunched_;   //Return true if beam is bunched.
-    double center_[3] = {0,0,0};
-
 public:
     void set_emit_nx(double x)
     {
@@ -64,13 +62,6 @@ public:
     {
         sigma_s_ = x;
     }
-    void set_center(double cx, double cy, double cz)
-    {
-        center_[0] = cx;
-        center_[1] = cy;
-        center_[2] = cz;
-    }
-    void set_center(int i, double x);
     int charge_number() const {return charge_number_;}
     double mass() const {return mass_;}
     double kinetic_energy() const {return kinetic_energy_;}
@@ -91,14 +82,6 @@ public:
     double p0_SI() const{return p0_;}
     double p0() const{return beta_*gamma_*mass_;}  //Momentum in [MeV/c]
     bool bunched()const {return bunched_;}
-    double center(int i) const
-    {
-        // Weird error handling for something that can never happen
-        if (i<3)
-            return center_[i];
-        else perror("Error index for electron beam center!");
-        return 1.0;
-    }
     Beam(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
         double sigma_s, double n_particle);
 };

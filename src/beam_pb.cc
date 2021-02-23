@@ -18,8 +18,6 @@ void init_beam(py::module &m) {
         .def("set_emit_x", (void (Beam::*)(double)) &Beam::set_emit_x, "x"_a)
         .def("set_emit_y", (void (Beam::*)(double)) &Beam::set_emit_y, "x"_a)
         .def("set_dp_p", (void (Beam::*)(double)) &Beam::set_dp_p, "x"_a)
-        .def("set_center", (void (Beam::*)(double, double, double)) &Beam::set_center, "cx"_a, "cy"_a, "cz"_a)
-        .def("set_center", (void (Beam::*)(int, double)) &Beam::set_center, "i"_a, "x"_a)
         .def("charge_number", &Beam::charge_number)
         .def("mass", &Beam::mass)
         .def("kinetic_energy", &Beam::kinetic_energy)
@@ -38,8 +36,6 @@ void init_beam(py::module &m) {
         .def("p0_SI", &Beam::p0_SI)
         .def("p0", &Beam::p0)
         .def("bunched", &Beam::bunched)
-        .def("center", (int (Beam::*)(double&, double&, double&)) &Beam::center, "cx"_a, "cy"_a, "cz"_a)
-        .def("center", (double (Beam::*)(int)) &Beam::center, "i"_a)
         .def(py::init<int, double, double, double, double, double, double, double>(),
              py::arg("charge_number"),
              py::arg("mass"),

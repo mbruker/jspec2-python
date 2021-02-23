@@ -26,10 +26,6 @@ Beam::Beam(int charge_number, double mass, double kinetic_energy, double emit_nx
     p0_ = gamma_*mass_*1e6*k_e*beta_/k_c;
 }
 
-void Beam::set_center(int i, double x) {
-    assert(i < 3 && "Error index for electron beam center!");
-    center_[i] = x;
-}
 
 void EBeam::set_center(double cx, double cy, double cz)
 {

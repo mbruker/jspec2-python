@@ -22,11 +22,10 @@ void TurnByTurnModel::apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample)
     vector<double> field(n);
 
 //    if(ecool_solver.p_shift_) {
-//        double cx, cy, cz;
-//        ion_sample.center(cx, cy, cz);
-//        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, field, n, cx, cy, cz);
-//        else ebeam.edge_field(x, y, ds, field, n, cx, cy, cz);
-//
+//        if(ebeam.multi_bunches())
+//            ebeam.multi_edge_field(x, y, ds, field, n, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
+//        else
+//            ebeam.edge_field(x, y, ds, field, n, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
 //    }
 //    else {
 //        if(ebeam.multi_bunches()) ebeam.multi_edge_field(x, y, ds, field, n);

@@ -16,6 +16,8 @@
   Design all constructors and setters such that they will catch
   all user errors previously handled in the UI.
 
+  grep for printf, perror, assert
+
 - Export all generated data to Python
     - Ion phase space
     - Force curve?
@@ -29,3 +31,11 @@
   Super dangerous! Can we rename one of them?
 
 - Example files!
+
+- Originally, Ions::center and Beam::center coexisted and were
+  used in a few places, but NEITHER had any purpose.
+  I have merged them into one, but of course, it still doesn't do anything
+  as far as I can see. Maybe it is meant to be used in the future.
+  Check that nothing is broken!
+
+

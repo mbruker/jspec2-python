@@ -26,11 +26,10 @@ void ECoolRate::electron_density(const Ions& ion_sample, EBeam &ebeam) {
     const vector<double>& y = ion_sample.cdnt_y();
     const vector<double>& ds = ion_sample.cdnt_ds();
     if(ebeam.p_shift()) {
-        double cx, cy, cz;
-        ion_sample.center(cx, cy, cz);
-        if(ebeam.multi_bunches()) ebeam.multi_density(x, y, ds, ne, n_sample, cx, cy, cz);
-        else ebeam.density(x, y, ds, ne, n_sample, cx, cy, cz);
-
+        if (ebeam.multi_bunches())
+            ebeam.multi_density(x, y, ds, ne, n_sample, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
+        else
+            ebeam.density(x, y, ds, ne, n_sample, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
     }
     else {
         if(ebeam.multi_bunches()) ebeam.multi_density(x, y, ds, ne, n_sample);
@@ -38,7 +37,7 @@ void ECoolRate::electron_density(const Ions& ion_sample, EBeam &ebeam) {
     }
 }
 
-void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
+void ECoolRate::space_to_dynamic(int n_sample, const Beam &ion, Ions &ion_sample) {
     double v = ion.beta()*k_c;
     vector<double>& xp = ion_sample.cdnt_xp();
     vector<double>& yp = ion_sample.cdnt_yp();
@@ -127,14 +126,14 @@ void ECoolRate::force(int n_sample, const Beam &ion, const EBeam &ebeam, const C
     }
 }
 
-void ECoolRate::bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler,
+void ECoolRate::bunched_to_coasting(const Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler,
                         FrictionForceSolver &force_solver){
     int n_sample = ion_sample.n_sample();
     int count = 1;
     vector<double> force_tr_rcd(n_sample);
     vector<double> force_long_rcd(n_sample);
 
-    double cz_rcd = ion.center(2);
+    double cz_rcd = ion_sample.center_z();
 
     ebeam.set_p_shift(true);
     int n_long = n_long_sample_;
@@ -142,7 +141,7 @@ void ECoolRate::bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, c
     double step = length/n_long;
     double gamma_e_inv = 1/ebeam.gamma();
     for(double cz = cz_rcd-0.5*length; cz <= cz_rcd+0.5*length; cz += step) {
-        ion.set_center(2,cz);
+        ion_sample.set_center_z(cz);
         electron_density(ion_sample, ebeam);
         for(int i=0; i<n_sample; ++i) ne[i] *= gamma_e_inv;
         force(n_sample, ion, ebeam, cooler, force_solver);
@@ -153,7 +152,7 @@ void ECoolRate::bunched_to_coasting(Beam &ion, Ions& ion_sample, EBeam &ebeam, c
         ++count;
     }
 
-    ion.set_center(2, cz_rcd);
+    ion_sample.set_center_z(cz_rcd);
     ebeam.set_p_shift(false);
     double count_inv = 1.0/static_cast<double>(count);
     for(int i=0; i<n_sample; ++i) {
@@ -173,7 +172,7 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 
 //Distribute to x and y direction
 void ECoolRate::force_distribute(int n_sample, const Beam &ion, const Ions &ion_sample) {
-    double v0 = ion.beta()*k_c;
+    const double v0 = ion.beta()*k_c;
     const vector<double>& xp = ion_sample.cdnt_xp();
     const vector<double>& yp = ion_sample.cdnt_yp();
     #ifdef _OPENMP
@@ -221,8 +220,8 @@ void ECoolRate::adjust_rate(const Beam &ion, const EBeam &ebeam, initializer_lis
     }
 }
 
-rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
-                Ions &ion_sample, Cooler &cooler, EBeam &ebeam, Ring &ring) {
+rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, const Beam &ion,
+                Ions &ion_sample, const Cooler &cooler, EBeam &ebeam, const Ring &ring) {
     int n_sample = ion_sample.n_sample();
     if(n_sample>scratch_size) init_scratch(n_sample);
 
@@ -251,14 +250,12 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     force_distribute(n_sample,ion, ion_sample);
 
     //Original emittance
-    double emit_x0, emit_y0, emit_z0;
-    ion_sample.emit(emit_x0, emit_y0, emit_z0);
+    const auto [emit_x0, emit_y0, emit_z0] = ion_sample.emit();
 
     //Apply kick
     apply_kick(n_sample, ion, ion_sample);
 
     //New emittance
-    double emit_x, emit_y, emit_z;
     auto t = ion_sample.get_twiss();
 
     adjust_disp_inv(t.disp_x, x_bet, dp_p, ion_sample.cdnt_x(), n_sample);
@@ -266,7 +263,7 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     adjust_disp_inv(t.disp_y, y_bet, dp_p, ion_sample.cdnt_y(), n_sample);
     adjust_disp_inv(t.disp_dy, yp_bet, dp_p, yp, n_sample);
 
-    ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt_ds(), emit_x, emit_y, emit_z);
+    const auto [emit_x, emit_y, emit_z] = ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt_ds());
 
     double rate_x = emit_x/emit_x0-1;
     double rate_y = emit_y/emit_y0-1;
