@@ -54,7 +54,7 @@ public:
     
     double t_cooler() const {return t_cooler_;}
     void set_n_long_sample(int n){n_long_sample_ = n;}
-    rate3d ecool_rate(FrictionForceSolver &force, IonBeam &ptcl, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring);
+    rate3d ecool_rate(FrictionForceSolver &force, IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring);
 };
 
 class ForceCurve: public ECoolRate {

@@ -21,14 +21,6 @@ void Simulator::run(IonBeam& ionBeam, ElectronBeam& ebeam,
     if (!n_steps)
         n_steps = ceil(time / dt);
     
-    std::cout << "Starting: dt=" << dt << "; n_steps=" << n_steps << std::endl;
-    
-    //Set time for new simulation or continued simulation.
-//    if(reset_time) t = t0;
-//    else t = uircd.t;
-    
-//    output_to_file();
-
     adjust_rf_voltage();
 
     State state;

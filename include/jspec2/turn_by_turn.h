@@ -1,8 +1,6 @@
 #ifndef TURN_BY_TURN_H_INCLUDED
 #define TURN_BY_TURN_H_INCLUDED
 
-#include <fstream>
-#include <string>
 #include <vector>
 
 #include "jspec2/particle_model.h"

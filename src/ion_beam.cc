@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <cmath>
-#include <fstream>
 #include <chrono>
 
 #include "jspec2/constants.h"
@@ -309,27 +308,13 @@ void IonBeam_SingleParticle::single_particle_grid()
 
 void IonBeam_SingleParticle::create_samples()
 {
-    // TODO eliminate redundant local variables
-    double emit_x = rms_emit_x_;
-    double emit_y = rms_emit_y_;
-    double sigma_p = rms_dp_p_;
-    double beta_x = twiss.bet_x;
-    double beta_y = twiss.bet_y;
-    double dx = twiss.disp_x;
-    double dy = twiss.disp_y;
-    double dpx = twiss.disp_dx;
-    double dpy = twiss.disp_dy;
+    const double y_amp = sqrt(2.0*rms_emit_y_*twiss.bet_y);
+    const double yp_amp = sqrt(2.0*rms_emit_y_/twiss.bet_y);
+    const double x_amp = sqrt(2.0*rms_emit_x_*twiss.bet_x);
+    const double xp_amp = sqrt(2.0*rms_emit_x_/twiss.bet_x);
 
-    double y_amp = sqrt(2.0*emit_y*beta_y);
-    double yp_amp = sqrt(2.0*emit_y/beta_y);
-    double x_amp = sqrt(2.0*emit_x*beta_x);
-    double xp_amp = sqrt(2.0*emit_x/beta_x);
-
-    double ds_amp, dp_amp;
-    if(bunched()){  //bunched beam
-        ds_amp = sqrt(2.0)*rms_sigma_s_;
-        dp_amp = sqrt(2.0)*sigma_p;
-    }
+    const double ds_amp = sqrt(2.0) * rms_sigma_s_; // only needed if bunched
+    const double dp_amp = sqrt(2.0) * rms_dp_p_;    // only needed if bunched
 
     int cnt = 0;
     for(int i=0; i<n_tr_; ++i){
@@ -357,17 +342,17 @@ void IonBeam_SingleParticle::create_samples()
                     xp_bet[cnt] = xp_spl_tmp;
                     y_bet[cnt] = y_spl_tmp;
                     yp_bet[cnt] = yp_spl_tmp;
-                    dp_p[cnt] = k*sigma_p;
+                    dp_p[cnt] = k*rms_dp_p_;
                     ++cnt;
                 }
             }
         }
     }
 
-    ::adjust_disp(dx, x_bet, dp_p, x, cnt);
-    ::adjust_disp(dy, y_bet, dp_p, y, cnt);
-    ::adjust_disp(dpx, xp_bet, dp_p, xp, cnt);
-    ::adjust_disp(dpy, yp_bet, dp_p, yp, cnt);
+    ::adjust_disp(twiss.disp_x, x_bet, dp_p, x, cnt);
+    ::adjust_disp(twiss.disp_y, y_bet, dp_p, y, cnt);
+    ::adjust_disp(twiss.disp_dx, xp_bet, dp_p, xp, cnt);
+    ::adjust_disp(twiss.disp_dy, yp_bet, dp_p, yp, cnt);
 
     if(bunched())
         update_bet_s();
