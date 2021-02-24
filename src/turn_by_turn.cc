@@ -1,24 +1,24 @@
 #include <chrono>
 #include <cmath>
 #include "jspec2/turn_by_turn.h"
-#include "jspec2/beam.h"
+#include "jspec2/electron_beam.h"
 #include "jspec2/constants.h"
 #include "jspec2/ecooling.h"
 #include "jspec2/functions.h"
 #include "jspec2/other_effects.h"
 #include "jspec2/particle_model.h"
 #include "jspec2/ring.h"
-#include "jspec2/ions.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/cooler.h"
 
-void TurnByTurnModel::apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample) {
-//    ::edge_effect(ebeam, ion, ion_sample, cooler, dt);
-    vector<double>& x = ion_sample.cdnt_x();
-    vector<double>& y = ion_sample.cdnt_y();
-    vector<double>& ds = ion_sample.cdnt_ds();
-    vector<double>& dp_p = ion_sample.cdnt_dp_p();
-    double p0 = ion.p0_SI();
-    int n = ion_sample.n_sample();
+void TurnByTurnModel::apply_edge_kick(ElectronBeam& ebeam, IonBeam& ionBeam) {
+//    ::edge_effect(ebeam, ionBeam, cooler, dt);
+    const vector<double>& x = ionBeam.cdnt_x();
+    const vector<double>& y = ionBeam.cdnt_y();
+    const vector<double>& ds = ionBeam.cdnt_ds();
+    vector<double>& dp_p = ionBeam.cdnt_dp_p();
+    const double p0 = ionBeam.p0_SI();
+    const int n = ionBeam.n_sample();
     vector<double> field(n);
 
 //    if(ecool_solver.p_shift_) {
@@ -33,8 +33,8 @@ void TurnByTurnModel::apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample)
 //    }
 
     ebeam.edge_field(cooler, x, y, ds, field, n);
-    double q = ion.charge_number()*k_e;
-    double coef = q*ecool_solver->t_cooler()*cooler.section_number()/p0;
+    const double q = ionBeam.charge_number()*k_e;
+    const double coef = q*ecool_solver->t_cooler()*cooler.section_number()/p0;
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -47,26 +47,26 @@ void TurnByTurnModel::apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample)
     }
 }
 
-void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
+void TurnByTurnModel::move_particles(IonBeam& ionBeam) {
     //Transverse
     //New betatron oscillation coordinates
-    const Twiss& twiss = ion_sample.get_twiss();
+    const Twiss& twiss = ionBeam.get_twiss();
 
     //Transverse motion by tunes
     const double Qx = ring.qx();
     const double Qy = ring.qy();
     assert(Qx>0 && Qy>0 &&"Transverse tunes are needed for Turn_by_turn model");
     
-    vector<double>& x_bet = ion_sample.cdnt_x_bet();
-    vector<double>& xp_bet = ion_sample.cdnt_xp_bet();
-    vector<double>& y_bet = ion_sample.cdnt_y_bet();
-    vector<double>& yp_bet = ion_sample.cdnt_yp_bet();
+    vector<double>& x_bet = ionBeam.cdnt_x_bet();
+    vector<double>& xp_bet = ionBeam.cdnt_xp_bet();
+    vector<double>& y_bet = ionBeam.cdnt_y_bet();
+    vector<double>& yp_bet = ionBeam.cdnt_yp_bet();
 
-    vector<double>& dp_p = ion_sample.cdnt_dp_p();
-    vector<double>& ds = ion_sample.cdnt_ds();
+    vector<double>& dp_p = ionBeam.cdnt_dp_p();
+    vector<double>& ds = ionBeam.cdnt_ds();
 
-    int n_sample = ion_sample.n_sample();
-    ion_sample.adjust_disp_inv();
+    int n_sample = ionBeam.n_sample();
+    ionBeam.adjust_disp_inv();
 
     if(idx>=0 && idx<n_sample) {
         if(file_exists(filename_single_particle)) {
@@ -103,16 +103,16 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
     }
 
     //Longitudinal motion.
-//    vector<double>& dp_p = ion_sample.cdnt_dp_p();
-//    vector<double>& ds = ion_sample.cdnt_ds();
+//    vector<double>& dp_p = ionBeam.cdnt_dp_p();
+//    vector<double>& ds = ionBeam.cdnt_ds();
     if (ring.qs()>0||ring.rf_voltage()>0) {    //RF, synchrotron oscillation.
 //        assert(ring.tunes->qs>0||ring.rf->v>0&&"Longitudinal tune or RF cavity needed for Turn_by_turn model");
 
         if(ring.rf_voltage()>0) { //Longitudinal motion by RF.
             double circ = ring.circ();
-            double beta2 = ion.beta()*ion.beta();
+            double beta2 = ionBeam.beta()*ionBeam.beta();
             double beta2_inv = 1/beta2;
-            double total_energy = ion.gamma()*ion.mass(); //ion total energy [MeV/c^2]
+            double total_energy = ionBeam.gamma()*ionBeam.mass(); //ion total energy [MeV/c^2]
             double total_energy_inv = 1/total_energy;
             double adj_dp2dE = beta2*total_energy;
 
@@ -125,7 +125,7 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
             double total_phase = h*2*k_pi;
             double adj_s2phi = total_phase/circ;
             double adj_phi2s = 1/adj_s2phi;
-            double adj_dE = ion.charge_number()*volt*1e-6; // [MeV/c^2]
+            double adj_dE = ionBeam.charge_number()*volt*1e-6; // [MeV/c^2]
     //                double adj_dE = ion.charge_number()*ring.rf_->volt()*1e-6; // [MeV/c^2]
             double sin_phi_s = sin(phi_s);
 //            double sin_phi_s = sin(phi_s+phi_0);
@@ -166,8 +166,8 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
         }
     }
     else {  //No RF.
-        double gamma_0 = ion.gamma();
-        double beta_0 = ion.beta();
+        double gamma_0 = ionBeam.gamma();
+        double beta_0 = ionBeam.beta();
         double half_length = 0.5*ring.circ();
         #ifdef _OPENMP
             #pragma omp parallel for
@@ -184,7 +184,7 @@ void TurnByTurnModel::move_particles(Beam& ion, Ions& ion_sample) {
         }
     }
 
-    ion_sample.adjust_disp();
+    ionBeam.adjust_disp();
 }
 
 double TurnByTurnModel::calc_timestep(double /*time*/, int /*n_steps*/) const

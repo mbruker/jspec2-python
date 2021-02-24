@@ -10,7 +10,7 @@ using namespace pybind11::literals;
 using std::vector;
 
 
-void init_beam(py::module &);
+void init_electron_beam(py::module &);
 void init_ring(py::module &);
 void init_ibs(py::module &);
 void init_cooler(py::module &);
@@ -22,7 +22,7 @@ void init_simulators(py::module &);
 
 PYBIND11_MODULE(jspec, m) {
     m.doc() = "JSPEC lib";
-    init_beam(m);
+    init_electron_beam(m);
     init_ring(m);
     init_ibs(m);
     init_cooler(m);

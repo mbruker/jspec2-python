@@ -3,12 +3,36 @@
 #include <fstream>
 #include <chrono>
 
-#include "jspec2/ions.h"
+#include "jspec2/constants.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/arbitrary_electron_beam.h"
 #include "jspec2/functions.h"
 
+// Changed mass to MeV/c^2 to match the legacy input file format!
+IonBeam::IonBeam(const Twiss &_twiss, int charge_number, double mass, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
+           double sigma_s, double n_particle)
+    : twiss(_twiss),
+      charge_number_(charge_number),
+      mass_(mass),
+      kinetic_energy_(kinetic_energy),
+      rms_emit_nx_(emit_nx),
+      rms_emit_ny_(emit_ny),
+      rms_dp_p_(dp_p),
+      rms_sigma_s_(sigma_s),
+      particle_number_(n_particle)
+{
+    gamma_ = 1+kinetic_energy_/mass_;
+    beta_ = sqrt(gamma_*gamma_-1)/gamma_;
+    r_ = k_ke*charge_number_*charge_number_*k_e*1e-6/mass_;
+    bunched_ = (rms_sigma_s_>0)?true:false;
+    rms_emit_x_ = rms_emit_nx_/(beta_*gamma_);
+    rms_emit_y_ = rms_emit_ny_/(beta_*gamma_);
+    rms_energy_spread_ = beta_*beta_*rms_dp_p_;
+    rms_dv_v_ = rms_dp_p_/(gamma_*gamma_);
+    p0_SI_ = gamma_*mass_*1e6*k_e*beta_/k_c;
+}
 
-void Ions::save_ions_sdds(string filename) const {
+void IonBeam::save_ions_sdds(string filename) const {
     using std::endl;
     std::ofstream output_particles;
     output_particles.open(filename);
@@ -33,7 +57,7 @@ void Ions::save_ions_sdds(string filename) const {
 }
 
 //Calculate the transverse emittance statistically
-double Ions_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const vector<double>&xp) const
+double IonBeam_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const vector<double>&xp) const
 {
     const auto n = x.size();
     double x_mean = 0, xp_mean = 0, dlt2_x = 0, dlt2_xp = 0, dlt_xxp = 0;
@@ -62,7 +86,7 @@ double Ions_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const 
 }
 
 //Calculate the longitudinal emittance as (dp/p)^2/n
-double Ions_MonteCarlo::statistical_emittance_l(const vector<double>& dp_p) const
+double IonBeam_MonteCarlo::statistical_emittance_l(const vector<double>& dp_p) const
 {
     const auto n = dp_p.size();
     double emit_p = 0;
@@ -99,7 +123,7 @@ void adjust_disp(double dx, vector<double>& x_bet, vector<double>& dp_p, vector<
     for(int i=0; i<n; ++i) x[i] = x_bet[i]+dx*dp_p[i];
 }
 
-array<double,3> Ions_MonteCarlo::emit(const vector<double>& x_bet, const vector<double>& xp_bet, const vector<double>& y_bet, const vector<double>& yp_bet,
+array<double,3> IonBeam_MonteCarlo::emit(const vector<double>& x_bet, const vector<double>& xp_bet, const vector<double>& y_bet, const vector<double>& yp_bet,
                       const vector<double>& dp_p, const vector<double>& ds) const
 {
     double emit_x = statistical_emittance_tr(x_bet, xp_bet);
@@ -110,12 +134,12 @@ array<double,3> Ions_MonteCarlo::emit(const vector<double>& x_bet, const vector<
     return {emit_x, emit_y, emit_s};
 }
 
-array<double,3> Ions_MonteCarlo::emit() const
+array<double,3> IonBeam_MonteCarlo::emit() const
 {
     return emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds);
 }
 
-array<double,3> Ions_SingleParticle::emit(const vector<double>& x_bet,
+array<double,3> IonBeam_SingleParticle::emit(const vector<double>& x_bet,
                                           const vector<double>& xp_bet,
                                           const vector<double>& y_bet,
                                           const vector<double>& yp_bet,
@@ -148,7 +172,7 @@ array<double,3> Ions_SingleParticle::emit(const vector<double>& x_bet,
     return {emit_x, emit_y, emit_s};
 }
 
-array<double,3> Ions_SingleParticle::emit() const
+array<double,3> IonBeam_SingleParticle::emit() const
 {
     return emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ds);
 }
@@ -194,22 +218,23 @@ int gaussian_bet_cod(double beta_xs, double alf_xs, double emit_x, vector<double
     return 0;
 }
 
-void Ions::adjust_disp(){
+void IonBeam::adjust_disp(){
     ::adjust_disp(twiss.disp_x, x_bet, dp_p, x, n_);
     ::adjust_disp(twiss.disp_y, y_bet, dp_p, y, n_);
     ::adjust_disp(twiss.disp_dx, xp_bet, dp_p, xp, n_);
     ::adjust_disp(twiss.disp_dy, yp_bet, dp_p, yp, n_);
 }
 
-void Ions::adjust_disp_inv(){
+void IonBeam::adjust_disp_inv(){
     ::adjust_disp_inv(twiss.disp_x, x_bet, dp_p, x, n_);
     ::adjust_disp_inv(twiss.disp_y, y_bet, dp_p, y, n_);
     ::adjust_disp_inv(twiss.disp_dx, xp_bet, dp_p, xp, n_);
     ::adjust_disp_inv(twiss.disp_dy, yp_bet, dp_p, yp, n_);
 }
 
-Ions_MonteCarlo::Ions_MonteCarlo(const Twiss &_twiss, int n_sample)
-    : Ions(_twiss)
+IonBeam_MonteCarlo::IonBeam_MonteCarlo(const Twiss &_twiss, int _charge_number, double _mass, double _kinetic_energy, double _emit_nx, double _emit_ny, double _dp_p,
+           double _sigma_s, double _n_particle, int n_sample)
+    : IonBeam(_twiss, _charge_number, _mass, _kinetic_energy, _emit_nx, _emit_ny, _dp_p, _sigma_s, _n_particle)
 {
     n_=n_sample;
     x_bet.resize(n_sample,0);
@@ -224,52 +249,40 @@ Ions_MonteCarlo::Ions_MonteCarlo(const Twiss &_twiss, int n_sample)
     yp.resize(n_sample,0);
 }
 
-Ions_MonteCarlo::Ions_MonteCarlo(const Twiss &_twiss, std::string filename, int n, int skip, bool binary, int n_buffer)
-    : Ions(_twiss)
+IonBeam_MonteCarlo::IonBeam_MonteCarlo(const Twiss &_twiss, int _charge_number, double _mass, double _kinetic_energy, double _emit_nx, double _emit_ny, double _dp_p,
+           double _sigma_s, double _n_particle, std::string filename, int n, int skip, bool binary, int n_buffer)
+    : IonBeam(_twiss, _charge_number, _mass, _kinetic_energy, _emit_nx, _emit_ny, _dp_p, _sigma_s, _n_particle)
 {
     auto n_loaded = load_electrons(x, xp, y, yp, ds, dp_p, filename, n, skip, binary,n_buffer);
     if (n_loaded!=n_) n_ = n_loaded;
 }
 
-void Ions_MonteCarlo::create_samples(const Beam& ion) {
-    double beta_xs = twiss.bet_x;
-    double beta_ys = twiss.bet_y;
-    double alf_xs = twiss.alf_x;
-    double alf_ys = twiss.alf_y;
-    double emit_x = ion.emit_x();
-    double emit_y = ion.emit_y();
+void IonBeam_MonteCarlo::create_samples()
+{
+    gaussian_bet_cod(twiss.bet_x, twiss.alf_x, rms_emit_x_, x_bet, xp_bet, n_);
+    gaussian_bet_cod(twiss.bet_y, twiss.alf_y, rms_emit_y_, y_bet, yp_bet, n_);
 
-    int n_sample = n_;
-
-    gaussian_bet_cod(beta_xs, alf_xs, emit_x, x_bet, xp_bet, n_sample);
-    gaussian_bet_cod(beta_ys, alf_ys, emit_y, y_bet, yp_bet, n_sample);
-
-    double sigma_p = ion.dp_p();
-    gaussian_random(n_sample, dp_p, sigma_p);
-    gaussian_random_adjust(n_sample, dp_p, sigma_p);
+    gaussian_random(n_, dp_p, rms_dp_p_);
+    gaussian_random_adjust(n_, dp_p, rms_dp_p_);
 
     //longitudinal sampling
-    if(ion.bunched()) {
-        double sigma_s = ion.sigma_s();
-        gaussian_random(n_sample, ds, sigma_s);
-        gaussian_random_adjust(n_sample, ds, sigma_s);
+    if(bunched()) {
+        gaussian_random(n_, ds, rms_sigma_s_);
+        gaussian_random_adjust(n_, ds, rms_sigma_s_);
     }
 
-    double dx = twiss.disp_x;
-    double dy = twiss.disp_y;
-    double dpx = twiss.disp_dx;
-    double dpy = twiss.disp_dy;
-    ::adjust_disp(dx, x_bet, dp_p, x, n_sample);
-    ::adjust_disp(dy, y_bet, dp_p, y, n_sample);
-    ::adjust_disp(dpx, xp_bet, dp_p, xp, n_sample);
-    ::adjust_disp(dpy, yp_bet, dp_p, yp, n_sample);
+    ::adjust_disp(twiss.disp_x, x_bet, dp_p, x, n_);
+    ::adjust_disp(twiss.disp_y, y_bet, dp_p, y, n_);
+    ::adjust_disp(twiss.disp_dx, xp_bet, dp_p, xp, n_);
+    ::adjust_disp(twiss.disp_dy, yp_bet, dp_p, yp, n_);
 
-    bunched_ = ion.bunched();
-    if(bunched_) beta_s_ = ion.sigma_s()/ion.dp_p();
+    if(bunched())
+        update_bet_s();
 }
 
-Ions_SingleParticle::Ions_SingleParticle(const Twiss &_twiss, int n_tr, int n_l)
-    : Ions(_twiss),
+IonBeam_SingleParticle::IonBeam_SingleParticle(const Twiss &_twiss, int _charge_number, double _mass, double _kinetic_energy, double _emit_nx, double _emit_ny, double _dp_p,
+           double _sigma_s, double _n_particle, int n_tr, int n_l)
+    : IonBeam(_twiss, _charge_number, _mass, _kinetic_energy, _emit_nx, _emit_ny, _dp_p, _sigma_s, _n_particle),
       n_tr_(n_tr),
       n_l_(n_l)
 {
@@ -291,14 +304,12 @@ Ions_SingleParticle::Ions_SingleParticle(const Twiss &_twiss, int n_tr, int n_l)
     y.resize(n_);
     xp.resize(n_);
     yp.resize(n_);
-
 };
 
-void Ions_SingleParticle::single_particle_grid(const Beam &ion){
-
-
-    double alf_x = twiss.alf_x;
-    double alf_y = twiss.alf_y;
+void IonBeam_SingleParticle::single_particle_grid()
+{
+    const double alf_x = twiss.alf_x;
+    const double alf_y = twiss.alf_y;
     double dphi = 2.0*k_pi/n_tr_;
     double phi = 0;
     for(int i=0; i<n_tr_; ++i){
@@ -309,7 +320,7 @@ void Ions_SingleParticle::single_particle_grid(const Beam &ion){
         phi += dphi;
     }
 
-    if(ion.bunched()){
+    if(bunched()){
         phi = 0;
         dphi = 2.0*k_pi/n_l_;
         for(int i=0; i<n_l_; ++i){
@@ -320,11 +331,12 @@ void Ions_SingleParticle::single_particle_grid(const Beam &ion){
     }
 }
 
-void Ions_SingleParticle::create_samples(const Beam& ion) {
-
-    double emit_x = ion.emit_x();
-    double emit_y = ion.emit_y();
-    double sigma_p = ion.dp_p();
+void IonBeam_SingleParticle::create_samples()
+{
+    // TODO eliminate redundant local variables
+    double emit_x = rms_emit_x_;
+    double emit_y = rms_emit_y_;
+    double sigma_p = rms_dp_p_;
     double beta_x = twiss.bet_x;
     double beta_y = twiss.bet_y;
     double dx = twiss.disp_x;
@@ -338,9 +350,8 @@ void Ions_SingleParticle::create_samples(const Beam& ion) {
     double xp_amp = sqrt(2.0*emit_x/beta_x);
 
     double ds_amp, dp_amp;
-    if(ion.bunched()){  //bunched beam
-        double sigma_s = ion.sigma_s();
-        ds_amp = sqrt(2.0)*sigma_s;
+    if(bunched()){  //bunched beam
+        ds_amp = sqrt(2.0)*rms_sigma_s_;
         dp_amp = sqrt(2.0)*sigma_p;
     }
 
@@ -351,7 +362,7 @@ void Ions_SingleParticle::create_samples(const Beam& ion) {
         for(int j=0; j<n_tr_; ++j){
             double x_spl_tmp = x_amp*x_spl[j];
             double xp_spl_tmp = xp_amp*xp_spl[j];
-            if(ion.bunched()){  //bunched beam
+            if(bunched()) {  //bunched beam
                 for(int k=0; k<n_l_; ++k){
                     double ds_spl_tmp = ds_amp*ds_spl[k];
                     double dp_spl_tmp = dp_amp*dp_p_spl[k];
@@ -382,6 +393,6 @@ void Ions_SingleParticle::create_samples(const Beam& ion) {
     ::adjust_disp(dpx, xp_bet, dp_p, xp, cnt);
     ::adjust_disp(dpy, yp_bet, dp_p, yp, cnt);
 
-    bunched_ = ion.bunched();
-    if(bunched_) beta_s_ = ion.sigma_s()/ion.dp_p();
+    if(bunched())
+        update_bet_s();
 }

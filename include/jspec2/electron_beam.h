@@ -1,9 +1,7 @@
 #ifndef BEAM_H
 #define BEAM_H
 
-#include <cmath>
 #include <cstdio>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -13,81 +11,8 @@
 class Cooler;
 using std::vector;
 
-class Beam{
-    int charge_number_;   //Number of charges
-    double mass_;    //unit in MeV/c^2
-    double r_;       //classical radius, in m
-    double kinetic_energy_;      //kinetic energy, in MeV
-    double beta_;    //Lorentz factors
-    double gamma_;   //Lorentz factors
-    double emit_nx_; //normalized horizontal emittance, in m
-    double emit_ny_; //normalized vertical emittance, in m
-    double emit_x_;  //geometrical horizontal emittance, in m
-    double emit_y_;  //geometrical vertical emittance, in m
-    double dp_p_;     //momentum spread dp/p
-    double energy_spread_;       // dE/E
-    double dv_v_;     // dv/v
-    double sigma_s_; //RMS bunch length. set it to -1 for coasting beam, in m
-    double particle_number_; //number of particles
-    double p0_; //momentum in kg*m/s
-    bool bunched_;   //Return true if beam is bunched.
-public:
-    void set_emit_nx(double x)
-    {
-        emit_nx_ = x;
-        emit_x_ = emit_nx_/(beta_*gamma_);
-    }
-    void set_emit_ny(double x)
-    {
-        emit_ny_ = x;
-        emit_y_ = emit_ny_/(beta_*gamma_);
-    }
-    void set_emit_x(double x)
-    {
-        emit_x_ = x;
-        emit_nx_ = beta_*gamma_*emit_x_;
-    }
-    void set_emit_y(double x)
-    {
-        emit_y_ = x;
-        emit_ny_ = beta_*gamma_*emit_y_;
-    }
-    void set_dp_p(double x)
-    {
-        dp_p_ = x;
-        energy_spread_ = beta_*beta_*dp_p_;
-        dv_v_ = dp_p_/(gamma_*gamma_);
-    }
-    void set_sigma_s(double x)
-    {
-        sigma_s_ = x;
-    }
-    int charge_number() const {return charge_number_;}
-    double mass() const {return mass_;}
-    double kinetic_energy() const {return kinetic_energy_;}
-    double beta() const {return beta_;}
-    double gamma() const {return gamma_;}
-    double emit_nx() const {return emit_nx_;}
-    double emit_ny() const {return emit_ny_;}
-    double emit_x() const {return emit_x_;}
-    double emit_y() const {return emit_y_;}
-    double dp_p() const {return dp_p_;}
-    double energy_spread() const {return energy_spread_;}
-    double velocity_spread() const {return dv_v_;}
-    double sigma_s() const {return sigma_s_;}
-    double r() const {return r_;}
-    double particle_number() const {return particle_number_;}
-//    double mass_number() const {return mass_number_;}
-//    double mass_SI() const {return mass_*1e6*k_e;}
-    double p0_SI() const{return p0_;}
-    double p0() const{return beta_*gamma_*mass_;}  //Momentum in [MeV/c]
-    bool bunched()const {return bunched_;}
-    Beam(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
-        double sigma_s, double n_particle);
-};
 
-
-class EBeam {
+class ElectronBeam {
 public:
     enum class Shape {UNIFORM_CYLINDER, GAUSSIAN_BUNCH, UNIFORM_BUNCH, GAUSSIAN_CYLINDER, ELLIPTIC_UNIFORM_BUNCH,
         UNIFORM_HOLLOW, UNIFORM_HOLLOW_BUNCH, PARTICLE_BUNCH};
@@ -122,7 +47,7 @@ protected:
     bool v_shift_ = false;             //Velocity shift.
     double cv_l_ = 0;
 public:
-    virtual ~EBeam(){};
+    virtual ~ElectronBeam(){};
     Velocity velocity() const {return velocity_;}
     Temperature temperature() const {return temperature_;}
     int charge_number() const {return -1;}
@@ -142,14 +67,13 @@ public:
     virtual Shape shape() const = 0;
     virtual double length() const = 0;
     double neutral() const {return neutralisation_;}
-    void set_kinetic_energy(double ke){kinetic_energy_ = ke; gamma_ = 1 + ke/k_me;
-            beta_ = sqrt(gamma_*gamma_-1)/gamma_;}
-    void set_gamma(double g){gamma_ = g; beta_ = sqrt(g*g-1)/g; kinetic_energy_ = (g-1)*k_me;}
-    void set_beta(double b){beta_ = b; gamma_ = 1/sqrt(1-b*b); kinetic_energy_ = (gamma_-1)*k_me;}
+    
+    // convenience functions for the UI. Make sure one of them is called
+    void set_kinetic_energy(double ke);
+    void set_gamma(double g);
+    void set_beta(double b);
+    
     void set_center(double cx, double cy, double cz);
-//    void center(double &cx, double &cy, double &cz) const {cx = center_[0]; cy = center_[1]; cz = center_[2];}
-//    double center(int i) const { if (i<3&&i>-1) return center_[i]; else perror("Error index for electron beam center!"); return 1.0;}
-//    void set_center(int i, double x){if(i<3&&i>-1) center_[i]=x; else perror("Error index for electron beam center!");}
     void set_tpr(double tpr_tr, double trp_long);
     void set_v_rms(double v_rms_tr, double v_rms_long);
     void set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long);
@@ -175,7 +99,7 @@ public:
                              vector<double>& field, int n, double cx, double cy, double cz);
 };
 
-class UniformCylinder: public EBeam{
+class UniformCylinder: public ElectronBeam{
     double current_;                   //Current of the beam in A
     double radius_;              //Radius of the beam in meter
  public:
@@ -190,7 +114,7 @@ class UniformCylinder: public EBeam{
                     {bunched_ = false;};
 };
 
-class UniformHollow: public EBeam {
+class UniformHollow: public ElectronBeam {
     double current_;    //Peak current, the current as if the beam is coasting.
     double in_radius_;
     double out_radius_;
@@ -208,7 +132,7 @@ class UniformHollow: public EBeam {
 };
 
 
-class UniformHollowBunch: public EBeam {
+class UniformHollowBunch: public ElectronBeam {
     double current_;
     double in_radius_;
     double out_radius_;
@@ -227,7 +151,7 @@ class UniformHollowBunch: public EBeam {
 };
 
 
-class UniformBunch: public EBeam{
+class UniformBunch: public ElectronBeam{
     double current_;                   //Current of the beam in A, assuming the beam is DC.
     double radius_;              //Radius of the beam in meter
     double length_;
@@ -254,7 +178,7 @@ public:
 };
 
 
-class EllipticUniformBunch: public EBeam{
+class EllipticUniformBunch: public ElectronBeam{
     double current_;
     double rh_;         //half horizontal axis
     double rv_;         //half vertical axis
@@ -271,7 +195,7 @@ public:
 };
 
 
-class GaussianBunch: public EBeam{
+class GaussianBunch: public ElectronBeam{
     double n_electron_;
     double sigma_x_;
     double sigma_y_;
@@ -292,7 +216,7 @@ class GaussianBunch: public EBeam{
 
 };
 
-class ParticleBunch: public EBeam {
+class ParticleBunch: public ElectronBeam {
     double n_electron_;
     std::string filename_;
     long int n_ = 0;
@@ -329,15 +253,15 @@ public:
 
 };
 
-//class MultiBunches: public EBeam{
+//class MultiBunches: public ElectronBeam{
 //    int n_; //Number of bunches
 //    vector<double> cx_;     //List of cxs.
 //    vector<double> cy_;     //List of cys.
 //    vector<double> cz_;     //List of czs.
 //
 // public:
-//    EBeam* bunches_;
-////    EBeam* bunch(){return bunches_;}
+//    ElectronBeam* bunches_;
+////    ElectronBeam* bunch(){return bunches_;}
 //    vector<double>& cx(){return cx_;}
 //    vector<double>& cy(){return cy_;}
 //    vector<double>& cz(){return cz_;}

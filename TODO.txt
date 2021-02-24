@@ -1,9 +1,4 @@
  
-- The separation between Ions and Beam is not clear.
-  It may be a good idea to keep immutable parameter sets and
-  state representation separate in the class hierarchy, but
-  these classes don't do that. Consider merging them.
-
 - The thing with the dual force solver seems dirty.
   Is there a clean way?
 
@@ -21,6 +16,8 @@
 - Export all generated data to Python
     - Ion phase space
     - Force curve?
+
+- Remove load_electrons() etc., load everything through ndarrays
     
 - Clean up all PB files:
     - Remove unneeded methods
@@ -29,6 +26,10 @@
 
 - The constants FrictionForceSolver::k_f and ForcePark::k_f have different values.
   Super dangerous! Can we rename one of them?
+
+- Eliminate n_sample, e.g. from ECoolRate methods
+
+- Why can't Ions & be const in ECoolRate::ecool_rate?
 
 - Example files!
 

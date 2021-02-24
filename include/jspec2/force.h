@@ -5,7 +5,7 @@
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
 #include <vector>
-#include "jspec2/beam.h"
+#include "jspec2/electron_beam.h"
 #include "jspec2/constants.h"
 
 
@@ -19,7 +19,7 @@ protected:
     static constexpr double k_f = -4*k_pi*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
     static constexpr double k_wp = 4*k_pi*k_c*k_c*k_e*k_ke/(k_me*1e6);
     static constexpr double k_rho_min = k_e*k_ke*k_c*k_c/(k_me*1e6);
-    virtual void init(const EBeam& ebeam){};
+    virtual void init(const ElectronBeam& ebeam){};
     virtual void fin(){};
     double max_impact_factor(double v_dlt, int charge_number,double density_e);
 public:
@@ -28,7 +28,7 @@ public:
     double t_cooler() const {return time_cooler;}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
-            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
+            const ElectronBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
 };
 
 class ForcePark: public FrictionForceSolver {
@@ -36,16 +36,16 @@ private:
     static constexpr double k_f = -4*k_c*k_c*k_ke*k_ke*k_e*k_e*k_e/(k_me*1e6);
     double t_eff = 0; //Effective temperature.
     double v_eff = 0; //Effective velocity.
-    void rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, EBeam::Temperature tpr,
+    void rho_lamor_dlt2_eff_e(double v2_eff_e, double mag_field, const vector<double>& v_rms_l, const vector<double>& v_rms_t, ElectronBeam::Temperature tpr,
                           int ion_number, vector<double>& dlt2_eff_e, vector<double>& rho_lamor);
-    constexpr double dlt(EBeam::Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i);
-    constexpr double lc(EBeam::Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i);
+    constexpr double dlt(ElectronBeam::Temperature tpr,  double v2, const vector<double>& dlt2_eff_e, int i);
+    constexpr double lc(ElectronBeam::Temperature tpr, double rho_max, double rho_min, const vector<double>& rho_lamor, int i);
 public:
     void set_t_eff(double x){t_eff = x; v_eff = sqrt(t_eff*k_c*k_c/(k_me*1e6));}
     void set_v_eff(double v){v_eff = v; t_eff = v_eff*v_eff*k_me*1e6/(k_c*k_c);}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
-            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
+            const ElectronBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceNonMag: public FrictionForceSolver {
@@ -64,7 +64,7 @@ public:
     void set_smooth_rho_max(bool b){smooth_rho_max = b;}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
-            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
+            const ElectronBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceNonMagDerbenev: public ForceNonMag {
@@ -189,7 +189,7 @@ private:
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);
 
-    void init(const EBeam& ebeam) override;
+    void init(const ElectronBeam& ebeam) override;
     double inner_integrand(double phi, void* params);
     double middle_integrand(double vl, void* params);
     double outter_integrand(double vtr, void* params);
@@ -241,7 +241,7 @@ public:
     void set_smooth_factor(double x){k = x;}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
-            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
+            const ElectronBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 
 class ForceDSM: public FrictionForceSolver {    //Derbenev-Skrinsky-Meshkov formula for magnetized cooling.
@@ -299,7 +299,7 @@ class ForceDSM: public FrictionForceSolver {    //Derbenev-Skrinsky-Meshkov form
     #endif // _OPENMP
 
 protected:
-    void init(const EBeam& ebeam) override;
+    void init(const ElectronBeam& ebeam) override;
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);
     void calc_alpha();
@@ -314,6 +314,6 @@ public:
     void set_mag_only(bool b){mag_only = b;}
     virtual void friction_force(int charge_number, int ion_number,
             const vector<double>& v_tr, const vector<double>& v_l, const vector<double>& density,
-            const EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
+            const ElectronBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) override;
 };
 #endif // FORCE_H

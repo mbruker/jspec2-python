@@ -9,8 +9,8 @@
 
 class TurnByTurnModel: public ParticleModel {
 protected:
-    void move_particles(Beam& ion, Ions& ion_sample) override;
-    void apply_edge_kick(EBeam& ebeam, Beam& ion, Ions& ion_sample) override;
+    void move_particles(IonBeam& ionBeam) override;
+    void apply_edge_kick(ElectronBeam& ebeam, IonBeam& ionBeam) override;
     ofstream out_single_particle;
     string filename_single_particle = "single_particle_";
     int idx = -1;

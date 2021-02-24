@@ -4,7 +4,7 @@
 
 #include "jspec2/cooler.h"
 #include "jspec2/ring.h"
-#include "jspec2/ions.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/force.h"
 #include "jspec2/ecooling.h"
 

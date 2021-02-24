@@ -4,37 +4,42 @@
 #include <fstream>
 #include <cassert>
 
-#include "jspec2/beam.h"
+#include "jspec2/electron_beam.h"
 #include "jspec2/arbitrary_electron_beam.h"
 #include "jspec2/cooler.h"
 
 using std::endl;
 
-// Changed mass to MeV/c^2 to match the legacy input file format!
-Beam::Beam(int charge_number, double mass, double kinetic_energy, double emit_nx, double emit_ny, double dp_p,
-           double sigma_s, double n_particle): charge_number_(charge_number), mass_(mass),
-           kinetic_energy_(kinetic_energy), emit_nx_(emit_nx), emit_ny_(emit_ny), dp_p_(dp_p), sigma_s_(sigma_s),
-           particle_number_(n_particle) {
-    gamma_ = 1+kinetic_energy_/mass_;
+
+void ElectronBeam::set_kinetic_energy(double ke)
+{
+    kinetic_energy_ = ke;
+    gamma_ = 1 + ke/k_me;
     beta_ = sqrt(gamma_*gamma_-1)/gamma_;
-    r_ = k_ke*charge_number_*charge_number_*k_e*1e-6/mass_;
-    bunched_ = (sigma_s_>0)?true:false;
-    emit_x_ = emit_nx_/(beta_*gamma_);
-    emit_y_ = emit_ny_/(beta_*gamma_);
-    energy_spread_ = beta_*beta_*dp_p_;
-    dv_v_ = dp_p_/(gamma_*gamma_);
-    p0_ = gamma_*mass_*1e6*k_e*beta_/k_c;
+}    
+
+void ElectronBeam::set_gamma(double g)
+{
+    gamma_ = g;
+    beta_ = sqrt(g*g-1)/g;
+    kinetic_energy_ = (g-1)*k_me;
 }
 
+void ElectronBeam::set_beta(double b)
+{
+    beta_ = b;
+    gamma_ = 1/sqrt(1-b*b);
+    kinetic_energy_ = (gamma_-1)*k_me;
+}
 
-void EBeam::set_center(double cx, double cy, double cz)
+void ElectronBeam::set_center(double cx, double cy, double cz)
 {
     center_x_ = cx;
     center_y_ = cy;
     center_z_ = cz;
 }
 
-void EBeam::set_tpr(double tpr_tr, double tpr_long) {
+void ElectronBeam::set_tpr(double tpr_tr, double tpr_long) {
     tpr_t.resize(1);
     tpr_l.resize(1);
     tpr_t.at(0) =  tpr_tr;
@@ -46,7 +51,7 @@ void EBeam::set_tpr(double tpr_tr, double tpr_long) {
     v_rms_l.at(0) = sqrt(tpr_long/k_me)*0.001*k_c;
 }
 
-void EBeam::set_v_rms(double v_rms_tr, double v_rms_long) {
+void ElectronBeam::set_v_rms(double v_rms_tr, double v_rms_long) {
     v_rms_t.resize(1);
     v_rms_l.resize(1);
     v_rms_t.at(0) = v_rms_tr;
@@ -57,7 +62,7 @@ void EBeam::set_v_rms(double v_rms_tr, double v_rms_long) {
     tpr_l.at(0) = v_rms_long*v_rms_long*k_me*1e6/(k_c*k_c);
 }
 
-void EBeam::set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long) {
+void ElectronBeam::set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long) {
     v_avg_x.resize(1);
     v_avg_y.resize(1);
     v_avg_l.resize(1);
@@ -355,7 +360,7 @@ void ParticleBunch::density(const vector<double>& x, const vector<double>& y, co
     for(int i=0; i<n; ++i) ne[i] *= rate;
 }
 
-void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n)
+void ElectronBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n)
 {
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {
@@ -364,7 +369,7 @@ void EBeam::multi_density(const vector<double>& x, const vector<double>& y, cons
     }
 }
 
-void EBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
+void ElectronBeam::multi_density(const vector<double>& x, const vector<double>& y, const vector<double>& z, vector<double>& ne, int n, double cx, double cy,
                        double cz)
 {
     vector<double> d(n);
@@ -428,7 +433,7 @@ void UniformBunch::edge_field(const Cooler& cooler, const vector<double>&x, cons
     }
 }
 
-void EBeam::multi_edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
+void ElectronBeam::multi_edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n) {
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {
@@ -436,7 +441,7 @@ void EBeam::multi_edge_field(const Cooler& cooler, const vector<double>&x, const
         for(int j=0; j<n; ++j) field.at(j) += d.at(j);
     }
 }
-void EBeam::multi_edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
+void ElectronBeam::multi_edge_field(const Cooler& cooler, const vector<double>&x, const vector<double>& y, const vector<double>&z,
                              vector<double>& field, int n, double cx, double cy, double cz) {
     vector<double> d(n);
     for(int i=0; i<n_; ++i) {

@@ -435,7 +435,7 @@ void density(const vector<Box> &tree, const std::vector<long int>& list_e, const
     v_rms_t.resize(ni, 0);
 
 
-    //Ions outside the electron bunch.
+    //IonBeam outside the electron bunch.
     while(list_i.at(idx_out)!=ni) {
         density_e[idx_out] = 0;
         v_avg_z.at(idx_out) = 0;
@@ -500,7 +500,7 @@ void density(const vector<Box> &tree, const std::vector<long int>& list_e, const
     v_rms_t.clear();
     v_rms_t.resize(ni, 0);
 
-    //Ions outside the electron bunch.
+    //IonBeam outside the electron bunch.
     while(list_i[idx_out]!=ni) {
         density_e[idx_out] = 0;
         v_rms_t[idx_out] = 0;
@@ -563,7 +563,7 @@ std::ostream& operator<<(std::ostream& os, Box& box){
 
 	os << std::endl;
 	os<<"Particles: " << box.n_ptcl <<' ' << box.first_ptcl<<std::endl;
-	os<<"Ions: " << box.n_ion <<' ' << box.first_ion<<std::endl;
+	os<<"IonBeam: " << box.n_ion <<' ' << box.first_ion<<std::endl;
 	return os;
 }
 

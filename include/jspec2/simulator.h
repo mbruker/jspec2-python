@@ -8,9 +8,9 @@
 #include <thread>
 
 class Beam;
-class Ions;
+class IonBeam;
 class Ring;
-class EBeam;
+class ElectronBeam;
 class Cooler;
 class IBSSolver;
 class ECoolRate;
@@ -20,11 +20,6 @@ class LuminositySolver;
 using std::string;
 using std::ofstream;
 using std::vector;
-
-enum class DynamicModel {RMS, PARTICLE, MODEL_BEAM = PARTICLE, TURN_BY_TURN};
-
-//extern double vl_emit_nx, vl_emit_ny, vl_dp_p, vl_sigma_s, vl_rx_ibs, vl_ry_ibs, vl_rs_ibs,
-//    vl_rx_ecool, vl_ry_ecool, vl_rs_ecool, vl_rx_total, vl_ry_total, vl_rs_total, vl_t;
 
 class DataSink;
 
@@ -57,9 +52,9 @@ protected:
 //    void output_sddshead();
 //    void output_to_file();
 //    void output(bool bunched=true, double v_rf=0, double lum=0);
-    virtual void update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt)=0;
+    virtual void update_ibeam(IonBeam& ionBeam, ElectronBeam& ebeam, double dt)=0;
     virtual void adjust_rf_voltage() = 0;
-//    virtual void save_ions(int i, Ions& ion_sample) = 0;
+//    virtual void save_ions(int i, IonBeam& ion_sample) = 0;
     virtual double calc_timestep(double time, int n_steps) const;
     
     DataSink *datasink = nullptr;
@@ -90,9 +85,8 @@ void set_datasink(DataSink *_datasink) { datasink = _datasink; }
 //    void set_overwrite(bool b) {overwrite = b; }
 //    void set_calc_lum(bool b) {calc_luminosity = b; }
 
-    virtual void run(Beam& ion,
-                     Ions& ion_sample,
-                     EBeam& ebeam,
+    virtual void run(IonBeam& ionBeam,
+                     ElectronBeam& ebeam,
                      double time,
                      int n_steps = 0,
                      int state_output_interval = 1,

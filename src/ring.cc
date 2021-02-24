@@ -7,8 +7,9 @@
 #include <string>
 #include <map>
 
+#include "jspec2/constants.h"
 #include "jspec2/ring.h"
-
+#include "jspec2/ion_beam.h"
 
 Lattice::Lattice(std::string filename) {
     std::ifstream infile;
@@ -123,12 +124,12 @@ Lattice::Lattice(double circ)
 }
 
 
-Ring::Ring(const Lattice &lattice, const Beam *beam, double qx, double qy, double qs, double rf_voltage, int rf_h, double rf_phi, double gamma_tr)
-    : beam_(beam), lattice_(lattice), qx_(qx), qy_(qy), qs_(qs), rf_voltage_(rf_voltage), rf_h_(rf_h), rf_phi_(rf_phi), gamma_tr_(gamma_tr)
+Ring::Ring(const Lattice &lattice, const IonBeam *beam, double qx, double qy, double qs, double rf_voltage, int rf_h, double rf_phi, double gamma_tr)
+    : ionBeam_(beam), lattice_(lattice), qx_(qx), qy_(qy), qs_(qs), rf_voltage_(rf_voltage), rf_h_(rf_h), rf_phi_(rf_phi), gamma_tr_(gamma_tr)
 {
     if(beam->bunched())
         update_bet_s();
-    f0_ = beam_->beta()*k_c/lattice.circ();
+    f0_ = ionBeam_->beta()*k_c/lattice.circ();
     w0_ = 2*k_pi*f0_;
 
     /* TODO: Transition gamma is a function of the lattice, not the RF.
@@ -147,8 +148,8 @@ double Ring::calc_sync_tune_by_rf() const
 {
     assert(rf.v>0&&rf.gamma_tr>0&&"DEFINE THE RF CAVITY FOR SYNCHROTRON TUNE CALCULATION!"); //RF has to be defined.
 
-    double cp = beam_->gamma()*beam_->beta()*beam_->mass()*1e6; //cp in [eV].
-    double tune = rf.h*slip_factor_*rf.v*cos(rf.phi)/(2*k_pi*beam_->beta()*cp);
+    double cp = ionBeam_->gamma()*ionBeam_->beta()*ionBeam_->mass()*1e6; //cp in [eV].
+    double tune = rf.h*slip_factor_*rf.v*cos(rf.phi)/(2*k_pi*ionBeam_->beta()*cp);
     if(tune<0) {
         tune = sqrt(-tune);
     }
@@ -159,12 +160,18 @@ double Ring::calc_sync_tune_by_rf() const
     return tune;
 }
 */
+
+void Ring::update_bet_s()
+{
+    beta_s_ = ionBeam_->rms_sigma_s()/ionBeam_->rms_dp_p();
+}
+
 void Ring::update_rf_voltage()
 {
-    if(beam_->bunched()) {
-        double energy = beam_->gamma()*beam_->mass()*1e6; //Total energy in [eV].
-        double v_rf = 2*k_pi*k_c*k_c*beam_->beta()*beam_->beta()*beam_->beta()*beam_->beta()*slip_factor()*energy*
-            beam_->dp_p()*beam_->dp_p()/(w0_*w0_*rf_h_*cos(rf_phi_)*beam_->sigma_s()*beam_->sigma_s());
+    if(ionBeam_->bunched()) {
+        double energy = ionBeam_->gamma()*ionBeam_->mass()*1e6; //Total energy in [eV].
+        double v_rf = 2*k_pi*k_c*k_c*ionBeam_->beta()*ionBeam_->beta()*ionBeam_->beta()*ionBeam_->beta()*slip_factor()*energy*
+            ionBeam_->rms_dp_p()*ionBeam_->rms_dp_p()/(w0_*w0_*rf_h_*cos(rf_phi_)*ionBeam_->rms_sigma_s()*ionBeam_->rms_sigma_s());
         rf_voltage_ = (v_rf>0)?v_rf:-v_rf;
     }
     else {
@@ -174,5 +181,5 @@ void Ring::update_rf_voltage()
 
 double Ring::slip_factor() const
 {
-    return 1/(gamma_tr_*gamma_tr_) - 1/(beam_->gamma()*beam_->gamma());
+    return 1/(gamma_tr_*gamma_tr_) - 1/(ionBeam_->gamma()*ionBeam_->gamma());
 }

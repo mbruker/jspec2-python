@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "jspec2/ring.h"
-#include "jspec2/beam.h"
 #include "jspec2/twiss.h"
+#include "jspec2/ion_beam.h"
 
 namespace py=pybind11;
 using namespace pybind11::literals;
@@ -32,9 +32,9 @@ void init_ring(py::module& m ){
         .def("circ", &Lattice::circ);
 
     py::class_<Ring>(m, "Ring")
-        .def(py::init<const Lattice&, const Beam *, double, double, double, double, int, double, double>(),
+        .def(py::init<const Lattice&, const IonBeam *, double, double, double, double, int, double, double>(),
              py::arg("lattice"),
-             py::arg("beam"),
+             py::arg("ion_beam"),
              py::arg("qx") = 0,
              py::arg("qy") = 0,
              py::arg("qs") = 0,

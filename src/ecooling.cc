@@ -10,26 +10,27 @@
 #endif // _OPENMP
 
 #include "jspec2/ecooling.h"
+#include "jspec2/electron_beam.h"
 #include "jspec2/constants.h"
 #include "jspec2/cooler.h"
 #include "jspec2/force.h"
 #include "jspec2/functions.h"
 #include "jspec2/ring.h"
-#include "jspec2/ions.h"
+#include "jspec2/ion_beam.h"
 
 using std::cout;
 using std::endl;
 
-void ECoolRate::electron_density(const Ions& ion_sample, EBeam &ebeam) {
-    int n_sample = ion_sample.n_sample();
-    const vector<double>& x = ion_sample.cdnt_x();
-    const vector<double>& y = ion_sample.cdnt_y();
-    const vector<double>& ds = ion_sample.cdnt_ds();
+void ECoolRate::electron_density(const IonBeam& ion, ElectronBeam &ebeam) {
+    const int n_sample = ion.n_sample();
+    const vector<double>& x = ion.cdnt_x();
+    const vector<double>& y = ion.cdnt_y();
+    const vector<double>& ds = ion.cdnt_ds();
     if(ebeam.p_shift()) {
         if (ebeam.multi_bunches())
-            ebeam.multi_density(x, y, ds, ne, n_sample, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
+            ebeam.multi_density(x, y, ds, ne, n_sample, ion.center_x(), ion.center_y(), ion.center_z());
         else
-            ebeam.density(x, y, ds, ne, n_sample, ion_sample.center_x(), ion_sample.center_y(), ion_sample.center_z());
+            ebeam.density(x, y, ds, ne, n_sample, ion.center_x(), ion.center_y(), ion.center_z());
     }
     else {
         if(ebeam.multi_bunches()) ebeam.multi_density(x, y, ds, ne, n_sample);
@@ -37,11 +38,12 @@ void ECoolRate::electron_density(const Ions& ion_sample, EBeam &ebeam) {
     }
 }
 
-void ECoolRate::space_to_dynamic(int n_sample, const Beam &ion, Ions &ion_sample) {
-    double v = ion.beta()*k_c;
-    vector<double>& xp = ion_sample.cdnt_xp();
-    vector<double>& yp = ion_sample.cdnt_yp();
-    vector<double>&dp_p = ion_sample.cdnt_dp_p();
+void ECoolRate::space_to_dynamic(int n_sample, const IonBeam &ion)
+{
+    const double v = ion.beta()*k_c;
+    const vector<double>& xp = ion.cdnt_xp();
+    const vector<double>& yp = ion.cdnt_yp();
+    const vector<double>&dp_p = ion.cdnt_dp_p();
     for(int i=0; i<n_sample; ++i) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
 //        v_long[i] /= (1-(v_long[i]+v)*ion.beta()/k_c);    //Convert to beam frame, when v_long<<v, canceled with the above line.
@@ -79,7 +81,7 @@ void ECoolRate::beam_frame(int n_sample, double gamma_e) {
 }
 
 //Calculate friction force
-void ECoolRate::force(int n_sample, const Beam &ion, const EBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver) {
+void ECoolRate::force(int n_sample, const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver) {
     //set parameters for friction force calculation
     force_solver.set_mag_field(cooler.magnetic_field());
     force_solver.set_time_cooler(t_cooler_);
@@ -126,14 +128,14 @@ void ECoolRate::force(int n_sample, const Beam &ion, const EBeam &ebeam, const C
     }
 }
 
-void ECoolRate::bunched_to_coasting(const Beam &ion, Ions& ion_sample, EBeam &ebeam, const Cooler &cooler,
+void ECoolRate::bunched_to_coasting(IonBeam& ion, ElectronBeam &ebeam, const Cooler &cooler,
                         FrictionForceSolver &force_solver){
-    int n_sample = ion_sample.n_sample();
+    int n_sample = ion.n_sample();
     int count = 1;
     vector<double> force_tr_rcd(n_sample);
     vector<double> force_long_rcd(n_sample);
 
-    double cz_rcd = ion_sample.center_z();
+    double cz_rcd = ion.center_z();
 
     ebeam.set_p_shift(true);
     int n_long = n_long_sample_;
@@ -141,8 +143,8 @@ void ECoolRate::bunched_to_coasting(const Beam &ion, Ions& ion_sample, EBeam &eb
     double step = length/n_long;
     double gamma_e_inv = 1/ebeam.gamma();
     for(double cz = cz_rcd-0.5*length; cz <= cz_rcd+0.5*length; cz += step) {
-        ion_sample.set_center_z(cz);
-        electron_density(ion_sample, ebeam);
+        ion.set_center_z(cz);
+        electron_density(ion, ebeam);
         for(int i=0; i<n_sample; ++i) ne[i] *= gamma_e_inv;
         force(n_sample, ion, ebeam, cooler, force_solver);
         for(int i=0; i<n_sample; ++i) {
@@ -152,7 +154,7 @@ void ECoolRate::bunched_to_coasting(const Beam &ion, Ions& ion_sample, EBeam &eb
         ++count;
     }
 
-    ion_sample.set_center_z(cz_rcd);
+    ion.set_center_z(cz_rcd);
     ebeam.set_p_shift(false);
     double count_inv = 1.0/static_cast<double>(count);
     for(int i=0; i<n_sample; ++i) {
@@ -171,10 +173,11 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 }
 
 //Distribute to x and y direction
-void ECoolRate::force_distribute(int n_sample, const Beam &ion, const Ions &ion_sample) {
+void ECoolRate::force_distribute(int n_sample, const IonBeam &ion)
+{
     const double v0 = ion.beta()*k_c;
-    const vector<double>& xp = ion_sample.cdnt_xp();
-    const vector<double>& yp = ion_sample.cdnt_yp();
+    const vector<double>& xp = ion.cdnt_xp();
+    const vector<double>& yp = ion.cdnt_yp();
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -184,11 +187,12 @@ void ECoolRate::force_distribute(int n_sample, const Beam &ion, const Ions &ion_
     }
 }
 
-void ECoolRate::apply_kick(int n_sample, const Beam &ion, const Ions& ion_sample) {
-    double p0 = ion.p0_SI();
-    const vector<double>& ixp = ion_sample.cdnt_xp();
-    const vector<double>& iyp = ion_sample.cdnt_yp();
-    const vector<double>& idp_p = ion_sample.cdnt_dp_p();
+void ECoolRate::apply_kick(int n_sample, const IonBeam& ion)
+{
+    const double p0 = ion.p0_SI();
+    const vector<double>& ixp = ion.cdnt_xp();
+    const vector<double>& iyp = ion.cdnt_yp();
+    const vector<double>& idp_p = ion.cdnt_dp_p();
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -206,7 +210,7 @@ void ECoolRate::apply_kick(int n_sample, const Beam &ion, const Ions& ion_sample
     }
 }
 
-void ECoolRate::adjust_rate(const Beam &ion, const EBeam &ebeam, initializer_list<double*> func) {
+void ECoolRate::adjust_rate(const IonBeam &ion, const ElectronBeam &ebeam, initializer_list<double*> func) {
     if(ebeam.bunched()&&(!ion.bunched())) {
         double sample_length = ebeam.length();
         if(sample_length<0) perror("electron bunch length must be positive!");
@@ -220,13 +224,13 @@ void ECoolRate::adjust_rate(const Beam &ion, const EBeam &ebeam, initializer_lis
     }
 }
 
-rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, const Beam &ion,
-                Ions &ion_sample, const Cooler &cooler, EBeam &ebeam, const Ring &ring) {
-    int n_sample = ion_sample.n_sample();
+rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver,
+                IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring) {
+    int n_sample = ion.n_sample();
     if(n_sample>scratch_size) init_scratch(n_sample);
 
-    electron_density(ion_sample,ebeam);
-    space_to_dynamic(n_sample, ion, ion_sample);
+    electron_density(ion, ebeam);
+    space_to_dynamic(n_sample, ion);
 
     //Time through the cooler
     t_cooler_ = cooler.length()/(ion.beta()*k_c);
@@ -239,7 +243,7 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, const Beam &ion,
 
     //Special treatment for bunched electron beam to cool coasting ion beam
     if(!ion.bunched()&&ebeam.bunched()) {
-        bunched_to_coasting(ion, ion_sample, ebeam, cooler, force_solver);
+        bunched_to_coasting(ion, ebeam, cooler, force_solver);
         force(n_sample, ion, ebeam, cooler, force_solver);
     }
 
@@ -247,23 +251,23 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver, const Beam &ion,
     lab_frame(n_sample, ebeam.gamma());
 
     //Distribute the friction force into x,y direction.
-    force_distribute(n_sample,ion, ion_sample);
+    force_distribute(n_sample, ion);
 
     //Original emittance
-    const auto [emit_x0, emit_y0, emit_z0] = ion_sample.emit();
+    const auto [emit_x0, emit_y0, emit_z0] = ion.emit();
 
     //Apply kick
-    apply_kick(n_sample, ion, ion_sample);
+    apply_kick(n_sample, ion);
 
     //New emittance
-    auto t = ion_sample.get_twiss();
+    auto t = ion.get_twiss();
 
-    adjust_disp_inv(t.disp_x, x_bet, dp_p, ion_sample.cdnt_x(), n_sample);
+    adjust_disp_inv(t.disp_x, x_bet, dp_p, ion.cdnt_x(), n_sample);
     adjust_disp_inv(t.disp_dx, xp_bet, dp_p, xp, n_sample);
-    adjust_disp_inv(t.disp_y, y_bet, dp_p, ion_sample.cdnt_y(), n_sample);
+    adjust_disp_inv(t.disp_y, y_bet, dp_p, ion.cdnt_y(), n_sample);
     adjust_disp_inv(t.disp_dy, yp_bet, dp_p, yp, n_sample);
 
-    const auto [emit_x, emit_y, emit_z] = ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt_ds());
+    const auto [emit_x, emit_y, emit_z] = ion.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion.cdnt_ds());
 
     double rate_x = emit_x/emit_x0-1;
     double rate_y = emit_y/emit_y0-1;
@@ -291,18 +295,21 @@ void ECoolRate::save_force_sdds_head(std::ofstream& of, int n) {
         <<n<<endl;
 }
 
-void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const Beam &ion, const Cooler &cooler, EBeam &ebeam){
+void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const IonBeam &ionBeam, const Cooler &cooler, ElectronBeam &ebeam)
+{
+    // TODO Something evil is happening in this function. A second ion beam?
+    
     save_force = true;
     if(iszero(dp_p, 1e-14)) n_l = 0;
     if(iszero(angle, 1e-14)) n_tr = 0;
     int n_sample = (n_tr+1) * (2*n_l+1);
     if(n_sample>scratch_size) init_scratch(n_sample);
-    Ions_MonteCarlo ion_sample(cooler.twiss(), n_sample);
+    IonBeam_MonteCarlo ion(cooler.twiss(), ionBeam.charge_number(), ionBeam.mass(), ionBeam.kinetic_energy(), ionBeam.rms_emit_nx(), ionBeam.rms_emit_ny(), ionBeam.rms_dp_p(), ionBeam.rms_sigma_s(), ionBeam.particle_number(), n_sample);
     if(density_e>0) ne.assign(n_sample, density_e*ebeam.gamma());
-    else electron_density(ion_sample,ebeam);
+    else electron_density(ion,ebeam);
 
     // space to dynamic
-    double v = ion.beta()*k_c;
+    double v = ionBeam.beta()*k_c;
     if (dp_p<0) dp_p *= -1;
     if (angle<0) angle *= -1;
     double da = angle/n_tr;
@@ -323,6 +330,6 @@ void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const Beam &io
     // Transfer into e- beam frame
     beam_frame(n_sample, ebeam.gamma());
     //Calculate friction force
-    force(n_sample, ion, ebeam, cooler, force_solver);
+    force(n_sample, ionBeam, ebeam, cooler, force_solver);
 }
 

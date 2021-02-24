@@ -13,7 +13,7 @@
 #include "jspec2/rate.h"
 
 class Lattice;
-class Beam;
+class IonBeam;
 
 enum class IBSModel {MARTINI, BM, BMC, BMZ};
 
@@ -36,7 +36,7 @@ public:
 
     IBSSolver(double log_c, double k);
 
-    virtual rate3d rate(const Lattice &lattice, const Beam &beam) = 0;
+    virtual rate3d rate(const Lattice &lattice, const IonBeam &beam) = 0;
 };
 
 class IBSSolver_Martini : public IBSSolver {
@@ -80,11 +80,11 @@ private:
     std::vector<OpticalStorage> storage_opt;
     std::vector<double> f1, f2, f3;
 
-    void bunch_size(const Lattice &lattice, const Beam &beam);
-    void abcdk(const Lattice &lattice, const Beam &beam);
+    void bunch_size(const Lattice &lattice, const IonBeam &beam);
+    void abcdk(const Lattice &lattice, const IonBeam &beam);
     void coef_f();
     void f();
-    double coef_a(const Lattice &lattice, const Beam &beam) const;
+    double coef_a(const Lattice &lattice, const IonBeam &beam) const;
 public:
     int nu() const { return nu_; }
     int nv() const { return nv_; }
@@ -93,7 +93,7 @@ public:
     void set_nv(int nv) { assert(nv>0&&"Wrong value of nv in IBS parameters!"); nv_ = nv; invalidate_cache(); }
     void set_nz(int nz) { assert(nz>0&&"Wrong value of nz in IBS parameters!"); nz_ = nz; invalidate_cache(); }
     IBSSolver_Martini(int nu, int nv, int nz, double log_c, double k);
-    virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
+    virtual rate3d rate(const Lattice &lattice, const IonBeam &beam) override;
 };
 
 class IBSSolver_BM : public IBSSolver {
@@ -116,12 +116,12 @@ class IBSSolver_BM : public IBSSolver {
      // Scratch variables for IBS calculation (Bjorken-Mtingwa model using Sergei Nagitsev's formula)
      std::vector<OpticalStorage> optical_strage;
      std::vector<Kernels> kernels;
-     void init_fixed_var(const Lattice &lattice, const Beam &beam);
-     void calc_kernels(const Lattice &lattice, const Beam &beam);
-     double coef_bm(const Lattice &lattice, const Beam &beam) const;
+     void init_fixed_var(const Lattice &lattice, const IonBeam &beam);
+     void calc_kernels(const Lattice &lattice, const IonBeam &beam);
+     double coef_bm(const Lattice &lattice, const IonBeam &beam) const;
  public:
      IBSSolver_BM(double log_c, double k);
-     virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
+     virtual rate3d rate(const Lattice &lattice, const IonBeam &beam) override;
 
 };
 
@@ -144,15 +144,15 @@ private:
     std::vector<optcl> optical;
     double factor = 3;
     void init_optical(const Lattice &lattice);
-    double calc_abc(const Lattice &lattice, const Beam& beam, int i, double& a, double& b, double& c,
+    double calc_abc(const Lattice &lattice, const IonBeam& beam, int i, double& a, double& b, double& c,
                                double& ax, double& bx, double& ay, double& by,double& al, double& bl);
-    double coef(const Lattice &lattice, const Beam &beam) const;
+    double coef(const Lattice &lattice, const IonBeam &beam) const;
     void calc_integral(double a, double b, double c, double ax, double bx, double ay, double by, double al,
                                   double bl, double& ix, double& iy, double& is, int nt, double u);
 public:
     IBSSolver_BMZ(int nt, double log_c, double k);
     void set_nt(int n){assert(n>0&&"Wrong value of nt in IBS parameters!"); nt_ = n; invalidate_cache();}
-    virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
+    virtual rate3d rate(const Lattice &lattice, const IonBeam &beam) override;
     void set_factor(double x){factor = x;}
 };
 
@@ -189,12 +189,12 @@ private:
     void calc_itgl(int i, std::array<std::array<double, 3>,3>& ii, std::array<std::array<double, 3>,3>& l,
                   std::array<std::array<double, 3>,3>& ll, std::array<std::array<double, 3>,3>& lh,
                   std::array<std::array<double, 3>,3>& lv, std::array<std::array<double, 3>,3>& ls);
-    void calc_beam_const(const Beam& beam);
-    double coef(const Lattice &lattice, const Beam &beam) const;
+    void calc_beam_const(const IonBeam& beam);
+    double coef(const Lattice &lattice, const IonBeam &beam) const;
 public:
      IBSSolver_BM_Complete(int nt, double log_c, double k);
      void set_factor(double x){factor = x;}
-     virtual rate3d rate(const Lattice &lattice, const Beam &beam) override;
+     virtual rate3d rate(const Lattice &lattice, const IonBeam &beam) override;
 
 };
 //

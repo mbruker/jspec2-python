@@ -10,7 +10,7 @@
 
 #include "jspec2/simulator.h"
 #include "jspec2/cooler.h"
-#include "jspec2/ions.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/particle_model.h"
 #include "jspec2/rms_dynamic.h"
 #include "jspec2/turn_by_turn.h"

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "jspec2/ibs.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/ring.h"
 
 namespace py=pybind11;
@@ -13,10 +14,6 @@ using namespace pybind11::literals;
 using std::vector;
 
 void init_ibs(py::module& m) {
-    py::enum_<IBSModel>(m, "IBSModel", py::arithmetic())
-        .value("MARTINI", IBSModel::MARTINI)
-        .value("BM", IBSModel::BM);
-
     py::class_<IBSSolver>(m, "IBSSolver");
 
     py::class_<IBSSolver_Martini, IBSSolver>(m, "IBSSolver_Martini")

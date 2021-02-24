@@ -1,35 +1,36 @@
 #include <chrono>
 #include <cmath>
+
 #include "jspec2/constants.h"
 #include "jspec2/functions.h"
 #include "jspec2/ring.h"
-#include "jspec2/ions.h"
+#include "jspec2/ion_beam.h"
 #include "jspec2/rms_dynamic.h"
 
-void RMSModel::update_ibeam(Beam& ion, Ions& ion_sample, EBeam& ebeam, double dt) {
-    double emit_nx = ion.emit_nx();
-    double emit_ny = ion.emit_ny();
-    double dp = ion.dp_p();
-    emit_nx *= exp(state.rx*dt);
-    emit_ny *= exp(state.ry*dt);
-    dp *= dp*exp(state.rs*dt);
-    dp = sqrt(dp);
+void RMSModel::update_ibeam(IonBeam& ionBeam, ElectronBeam& /*ebeam*/, double dt)
+{
+    const double emit_nx = ionBeam.rms_emit_nx() * exp(state.rx*dt);
+    const double emit_ny = ionBeam.rms_emit_ny() * exp(state.ry*dt);
+    // Is there a reason why we compute the sqrt of a square?
+    // ionBeam.rms_dp_p() can't be negative, can it?
+    const double dp = sqrt(ionBeam.rms_dp_p() * ionBeam.rms_dp_p() * exp(state.rs*dt));
 
-    ion.set_emit_nx(emit_nx);
-    ion.set_emit_ny(emit_ny);
-    ion.set_dp_p(dp);
+    ionBeam.set_emit_nx(emit_nx);
+    ionBeam.set_emit_ny(emit_ny);
+    ionBeam.set_dp_p(dp);
 
-    if(ion.bunched()) {
+    if(ionBeam.bunched()) {
         if(fixed_bunch_length) {
             ring.update_rf_voltage();
             ring.update_bet_s();
         }
         else {
-            ion.set_sigma_s(ring.beta_s()*dp);
+            ionBeam.set_sigma_s(ring.beta_s()*dp);
         }
     }
 
-    if(ecool_solver) ion_sample.create_samples(ion);
+    if (ecool_solver)
+        ionBeam.create_samples();
 }
 
 void RMSModel::adjust_rf_voltage()

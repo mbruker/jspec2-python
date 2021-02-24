@@ -2,16 +2,12 @@
 #define RING_H
 
 #include <cassert>
-#include <memory>
 #include <string>
 #include <vector>
-#include "jspec2/beam.h"
-#include "jspec2/constants.h"
 
 using std::vector;
 
-//enum class ShapeList {uniformCylinder=1, GaussianBunch=2, GaussianCylinder=3, uniformCylinderSlope=4,
-//                      uniformCylinderBunch, darkCurrent};
+class IonBeam;
 
 class Lattice{
     vector<double> s_;
@@ -52,7 +48,7 @@ protected:
     double beta_s_ = 0;         //Synchrotron function, use to calculate rms bunch length from momentum spread
     double f0_ = 0;               // revolution frequency.
     double w0_ = 0;       // angular revolution frequency.
-    const Beam *beam_;
+    const IonBeam *ionBeam_;
     Lattice lattice_;
     // Tunes
     double qx_ = 0;
@@ -64,7 +60,7 @@ protected:
     double rf_phi_ = 0;          // RF phase in 2*pi
     double gamma_tr_ = 0;        // Transition gamma
  public:
-    double beta_s() const {assert(beam_->bunched()); return beta_s_;}
+    double beta_s() const { return beta_s_; }
     double circ() const { return lattice_.circ(); }
     double f0() const {return f0_;}
     double w0() const {return w0_;}
@@ -74,13 +70,13 @@ protected:
     double gamma_tr() const { return gamma_tr_; }
     double slip_factor() const;
 //    double calc_sync_tune_by_rf() const;
-    const Beam& beam() const {return *beam_;}
+    const IonBeam& ionBeam() const {return *ionBeam_;}
     const Lattice& lattice() const {return lattice_;}
     double qx() const { return qx_; }
     double qy() const { return qy_; }
     double qs() const { return qs_; }
-    Ring(const Lattice &lattice_defined,
-         const Beam *beam_defined,
+    Ring(const Lattice &lattice,
+         const IonBeam *beam,
          double qx = 0,
          double qy = 0,
          double qs = 0,
@@ -89,7 +85,7 @@ protected:
          double rf_phi = 0,
          double gamma_tr = 0
         );
-    void update_bet_s(){beta_s_ = beam_->sigma_s()/beam_->dp_p();}
+    void update_bet_s();
     void update_rf_voltage();
 };
 

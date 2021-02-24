@@ -21,12 +21,12 @@ set(INCLUDE_DIR
 
 set(SOURCE_FILES
     src/arbitrary_electron_beam.cc
-    src/beam.cc
+    src/electron_beam.cc
     src/ecooling.cc
     src/force.cc
     src/functions.cc
     src/ibs.cc
-    src/ions.cc
+    src/ion_beam.cc
     src/luminosity.cc
     src/other_effects.cc
     src/particle_model.cc
@@ -38,14 +38,14 @@ set(SOURCE_FILES
 
 set(HEADER_FILES
         ${INCLUDE_DIR}/jspec2/arbitrary_electron_beam.h
-        ${INCLUDE_DIR}/jspec2/beam.h
+        ${INCLUDE_DIR}/jspec2/electron_beam.h
         ${INCLUDE_DIR}/jspec2/constants.h
         ${INCLUDE_DIR}/jspec2/cooler.h
         ${INCLUDE_DIR}/jspec2/ecooling.h
         ${INCLUDE_DIR}/jspec2/force.h
         ${INCLUDE_DIR}/jspec2/functions.h
         ${INCLUDE_DIR}/jspec2/ibs.h
-        ${INCLUDE_DIR}/jspec2/ions.h
+        ${INCLUDE_DIR}/jspec2/ion_beam.h
         ${INCLUDE_DIR}/jspec2/luminosity.h
         ${INCLUDE_DIR}/jspec2/other_effects.h
         ${INCLUDE_DIR}/jspec2/particle_model.h
@@ -58,12 +58,12 @@ set(HEADER_FILES
 )
 
 set(PYTHON_FILES
-        src/beam_pb.cc
+        src/electron_beam_pb.cc
         src/cooler_pb.cc
         src/ecooling_pb.cc
         src/force_pb.cc
         src/ibs_pb.cc
-        src/ions_pb.cc
+        src/ion_beam_pb.cc
         src/jspec2_pb.cc
         src/luminosity_pb.cc
         src/ring_pb.cc

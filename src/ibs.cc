@@ -10,7 +10,7 @@
 #include "jspec2/functions.h"
 #include "jspec2/ibs.h"
 #include "jspec2/ring.h"
-#include "jspec2/beam.h"
+#include "jspec2/ion_beam.h"
 
 IBSSolver::IBSSolver(double log_c, double k)
     : log_c_(log_c), k_(k)
@@ -54,17 +54,17 @@ IBSSolver_Martini::IBSSolver_Martini(int nu, int nv, int nz, double log_c, doubl
 }
 
 //Calculate sigma_xbet, sigma_xbetp, sigma_y, sigma_yp
-void IBSSolver_Martini::bunch_size(const Lattice &lattice, const Beam &beam)
+void IBSSolver_Martini::bunch_size(const Lattice &lattice, const IonBeam &beam)
 {
-    int n = lattice.n_element();
+    const int n = lattice.n_element();
 
     sigma_xbet.resize(n);
     sigma_xbetp.resize(n);
     sigma_y.resize(n);
     sigma_yp.resize(n);
 
-    double emit_x = beam.emit_x();
-    double emit_y = beam.emit_y();
+    const double emit_x = beam.rms_emit_x();
+    const double emit_y = beam.rms_emit_y();
 
     #ifdef _OPENMP
         #pragma omp parallel for
@@ -83,16 +83,16 @@ void IBSSolver_Martini::bunch_size(const Lattice &lattice, const Beam &beam)
 
 //Calculate a, b, c, d and dtld
 //Call bunch_size() before calling this one
-void IBSSolver_Martini::abcdk(const Lattice &lattice, const Beam &beam)
+void IBSSolver_Martini::abcdk(const Lattice &lattice, const IonBeam &beam)
 {
 
     const int n = lattice.n_element();
     storage_opt.resize(n);
 
-    const double dp_p = beam.dp_p();
+    const double dp_p = beam.rms_dp_p();
     const double beta = beam.beta();
     const double gamma = beam.gamma();
-    const double r = beam.r();
+    const double r = beam.classical_radius();
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -242,20 +242,20 @@ void IBSSolver_Martini::f()
     }
 }
 
-double IBSSolver_Martini::coef_a(const Lattice &lattice, const Beam &beam) const
+double IBSSolver_Martini::coef_a(const Lattice &lattice, const IonBeam &beam) const
 {
     double lambda = beam.particle_number()/lattice.circ();
-    if(beam.bunched()) lambda = beam.particle_number()/(2*sqrt(k_pi)*beam.sigma_s());
+    if(beam.bunched()) lambda = beam.particle_number()/(2*sqrt(k_pi)*beam.rms_sigma_s());
 
     double beta3 = beam.beta();
     beta3 = beta3*beta3*beta3;
     double gamma4 = beam.gamma();
     gamma4 *= gamma4;
     gamma4 *= gamma4;
-    return k_c*beam.r()*beam.r()*lambda/(16*k_pi*sqrt(k_pi)*beam.dp_p()*beta3*gamma4)/(beam.emit_x()*beam.emit_y());
+    return k_c*beam.classical_radius()*beam.classical_radius()*lambda/(16*k_pi*sqrt(k_pi)*beam.rms_dp_p()*beta3*gamma4)/(beam.rms_emit_x()*beam.rms_emit_y());
 }
 
-rate3d IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam)
+rate3d IBSSolver_Martini::rate(const Lattice &lattice, const IonBeam &beam)
 {
     bunch_size(lattice, beam);
     abcdk(lattice, beam);
@@ -314,7 +314,7 @@ rate3d IBSSolver_Martini::rate(const Lattice &lattice, const Beam &beam)
         rs /= circ;
     }
 
-    if(k_>0) ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+    if(k_>0) ibs_coupling(rx, ry, k_, beam.rms_emit_nx(), beam.rms_emit_ny());
     return std::make_tuple(rx, ry, rs);
 }
 
@@ -325,7 +325,7 @@ IBSSolver_BM::IBSSolver_BM(double log_c, double k)
 {
 }
 
-void IBSSolver_BM::init_fixed_var(const Lattice& lattice, const Beam& beam) {
+void IBSSolver_BM::init_fixed_var(const Lattice& lattice, const IonBeam& beam) {
     int n = lattice.n_element();
     optical_strage.resize(n);
 
@@ -341,10 +341,10 @@ void IBSSolver_BM::init_fixed_var(const Lattice& lattice, const Beam& beam) {
     }
 }
 
-void IBSSolver_BM::calc_kernels(const Lattice& lattice, const Beam& beam) {
-    auto emit_x = beam.emit_x();
-    auto emit_y = beam.emit_y();
-    auto sigma_p2 = beam.dp_p() * beam.dp_p();
+void IBSSolver_BM::calc_kernels(const Lattice& lattice, const IonBeam& beam) {
+    auto emit_x = beam.rms_emit_x();
+    auto emit_y = beam.rms_emit_y();
+    auto sigma_p2 = beam.rms_dp_p() * beam.rms_dp_p();
     auto inv_sigma_p2 = 1/sigma_p2;
     auto n = lattice.n_element();
     auto gamma2 = beam.gamma()*beam.gamma();
@@ -398,21 +398,21 @@ void IBSSolver_BM::calc_kernels(const Lattice& lattice, const Beam& beam) {
     }
 }
 
-double IBSSolver_BM::coef_bm(const Lattice &lattice, const Beam &beam) const {
+double IBSSolver_BM::coef_bm(const Lattice &lattice, const IonBeam &beam) const {
     double lambda = 1;
     if (beam.bunched())
-        lambda /= 2*sqrt(k_pi)*beam.sigma_s();
+        lambda /= 2*sqrt(k_pi)*beam.rms_sigma_s();
     else
         lambda /= lattice.circ();
 
     double beta3 = beam.beta()*beam.beta()*beam.beta();
     double gamma5 = beam.gamma()*beam.gamma()*beam.gamma()*beam.gamma()*beam.gamma();
-    return lambda*beam.particle_number()*beam.r()*beam.r()*k_c/(lattice.circ()*6*sqrt(k_pi)*beta3*gamma5);
+    return lambda*beam.particle_number()*beam.classical_radius()*beam.classical_radius()*k_c/(lattice.circ()*6*sqrt(k_pi)*beta3*gamma5);
 }
 
-rate3d IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam)
+rate3d IBSSolver_BM::rate(const Lattice &lattice, const IonBeam &beam)
 {
-    int n_element = lattice.n_element();
+    const int n_element = lattice.n_element();
 
     if (cache_invalid) {
         init_fixed_var(lattice, beam);
@@ -443,9 +443,9 @@ rate3d IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam)
             double l_element = lattice.l_element(i);
             double rxi = (lattice.betx(i)*kernels.at(i).inv_sigma*(kernels.at(i).sx
                             +optical_strage.at(i).dx_betax_phi_2*kernels.at(i).sp
-                            +kernels.at(i).sxp)*l_element)*c_bm/beam.emit_x();
-            double ryi = (lattice.bety(i)*kernels.at(i).inv_sigma*kernels.at(i).psi*l_element)*c_bm/beam.emit_y();
-            double rsi = (kernels.at(i).inv_sigma*kernels.at(i).sp*l_element)*n*c_bm/(beam.dp_p()*beam.dp_p());
+                            +kernels.at(i).sxp)*l_element)*c_bm/beam.rms_emit_x();
+            double ryi = (lattice.bety(i)*kernels.at(i).inv_sigma*kernels.at(i).psi*l_element)*c_bm/beam.rms_emit_y();
+            double rsi = (kernels.at(i).inv_sigma*kernels.at(i).sp*l_element)*n*c_bm/(beam.rms_dp_p()*beam.rms_dp_p());
 
             rx += rxi;
             ry += ryi;
@@ -472,17 +472,19 @@ rate3d IBSSolver_BM::rate(const Lattice &lattice, const Beam &beam)
         rx *= c_bm;
         ry *= c_bm;
 
-        rs /= beam.dp_p()*beam.dp_p();
-        rx /= beam.emit_x();
-        ry /= beam.emit_y();
+        rs /= beam.rms_dp_p()*beam.rms_dp_p();
+        rx /= beam.rms_emit_x();
+        ry /= beam.rms_emit_y();
     }
 
     if(k_>0)
-        ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+        ibs_coupling(rx, ry, k_, beam.rms_emit_nx(), beam.rms_emit_ny());
     return std::make_tuple(rx, ry, rs);
 }
 
-IBSSolver_BMZ::IBSSolver_BMZ(int nt, double log_c, double k) : IBSSolver(log_c, k), nt_(nt) {
+IBSSolver_BMZ::IBSSolver_BMZ(int nt, double log_c, double k)
+    : IBSSolver(log_c, k), nt_(nt)
+{
 }
 
 void IBSSolver_BMZ::init_optical(const Lattice &lattice) {
@@ -515,10 +517,10 @@ void IBSSolver_BMZ::init_optical(const Lattice &lattice) {
     }
 }
 
-double IBSSolver_BMZ::calc_abc(const Lattice &lattice, const Beam& beam, int i, double& a, double& b, double& c,
+double IBSSolver_BMZ::calc_abc(const Lattice &lattice, const IonBeam& beam, int i, double& a, double& b, double& c,
                                double& ax, double& bx, double& ay, double& by,double& al, double& bl) {
-    double emit_x = beam.emit_x();
-    double emit_y = beam.emit_y();
+    double emit_x = beam.rms_emit_x();
+    double emit_y = beam.rms_emit_y();
     double gamma = beam.gamma();
     double gamma_2 = gamma*gamma;
     double gamma_2_inv = 1/gamma_2;
@@ -526,7 +528,7 @@ double IBSSolver_BMZ::calc_abc(const Lattice &lattice, const Beam& beam, int i, 
     double emit_y_inv = 1/emit_y;
     double emit_x2_inv = emit_x_inv*emit_x_inv;
     double emit_y2_inv = emit_y_inv*emit_y_inv;
-    double dp_2_inv = 1/(beam.dp_p()*beam.dp_p());
+    double dp_2_inv = 1/(beam.rms_dp_p()*beam.rms_dp_p());
 
     double u = 0;
 
@@ -600,19 +602,19 @@ void IBSSolver_BMZ::calc_integral(double a, double b, double c, double ax, doubl
     is *= dl;
 }
 
-double IBSSolver_BMZ::coef(const Lattice &lattice, const Beam &beam) const {
+double IBSSolver_BMZ::coef(const Lattice &lattice, const IonBeam &beam) const {
     double lambda = 2*sqrt(k_pi)*beam.particle_number()/lattice.circ();
-    if(beam.bunched()) lambda = beam.particle_number()/beam.sigma_s();
+    if(beam.bunched()) lambda = beam.particle_number()/beam.rms_sigma_s();
      double beta3 = beam.beta();
     beta3 = beta3*beta3*beta3;
     double gamma4 = beam.gamma();
     gamma4 *= gamma4;
     gamma4 *= gamma4;
-    return k_c*beam.r()*beam.r()*lambda/(8*k_pi*beam.dp_p()*beta3*gamma4*beam.emit_x()*beam.emit_y());
+    return k_c*beam.classical_radius()*beam.classical_radius()*lambda/(8*k_pi*beam.rms_dp_p()*beta3*gamma4*beam.rms_emit_x()*beam.rms_emit_y());
 }
 
-rate3d IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam) {
-    int n_element = lattice.n_element();
+rate3d IBSSolver_BMZ::rate(const Lattice &lattice, const IonBeam &beam) {
+    const int n_element = lattice.n_element();
 
     if (cache_invalid) {
         init_optical(lattice);
@@ -642,9 +644,9 @@ rate3d IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam) {
             double ix, iy, is;
             calc_integral(a, b, c, ax, bx, ay, by, as, bs, ix, iy, is, nt_, u);
 
-            double rxi = optical.at(i).hx*ix*l_element*c_bmz*gamma_2/beam.emit_x();
-            double ryi =  lattice.bety(i)*iy*l_element*c_bmz/beam.emit_y();
-            double rsi = is*l_element*n*c_bmz*gamma_2/(beam.dp_p()*beam.dp_p());
+            double rxi = optical.at(i).hx*ix*l_element*c_bmz*gamma_2/beam.rms_emit_x();
+            double ryi =  lattice.bety(i)*iy*l_element*c_bmz/beam.rms_emit_y();
+            double rsi = is*l_element*n*c_bmz*gamma_2/(beam.rms_dp_p()*beam.rms_dp_p());
 
             rx += rxi;
             ry += ryi;
@@ -674,13 +676,13 @@ rate3d IBSSolver_BMZ::rate(const Lattice &lattice, const Beam &beam) {
         rx *= c_bmz*gamma_2;
         ry *= c_bmz;
 //
-        rs /= beam.dp_p()*beam.dp_p();
-        rx /= beam.emit_x();
-        ry /= beam.emit_y();
+        rs /= beam.rms_dp_p()*beam.rms_dp_p();
+        rx /= beam.rms_emit_x();
+        ry /= beam.rms_emit_y();
     }
 
     if(k_>0)
-        ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+        ibs_coupling(rx, ry, k_, beam.rms_emit_nx(), beam.rms_emit_ny());
     return std::make_tuple(rx, ry, rs);
 }
 
@@ -734,12 +736,12 @@ double IBSSolver_BM_Complete::inv(std::array<std::array<double, 3>,3>& l, std::a
     return l_det;
 }
 
-void IBSSolver_BM_Complete::calc_beam_const(const Beam& beam) {
+void IBSSolver_BM_Complete::calc_beam_const(const IonBeam& beam) {
     gamma = beam.gamma();
     gamma2 = gamma*gamma;
-    inv_ex = 1/beam.emit_x();
-    inv_ey = 1/beam.emit_y();
-    inv_dp2 = 1/(beam.dp_p()*beam.dp_p());
+    inv_ex = 1/beam.rms_emit_x();
+    inv_ey = 1/beam.rms_emit_y();
+    inv_dp2 = 1/(beam.rms_dp_p()*beam.rms_dp_p());
 }
 
 void IBSSolver_BM_Complete::calc_l(const Lattice& lattice, int i, std::array<std::array<double, 3>,3>& lh,
@@ -764,16 +766,16 @@ void IBSSolver_BM_Complete::calc_l(const Lattice& lattice, int i, std::array<std
     ls[1][1] = gamma2*inv_dp2;
 }
 
-double IBSSolver_BM_Complete::coef(const Lattice &lattice, const Beam &beam) const {
+double IBSSolver_BM_Complete::coef(const Lattice &lattice, const IonBeam &beam) const {
     double lambda;
-    if(beam.bunched()) lambda = beam.particle_number()/beam.sigma_s();
+    if(beam.bunched()) lambda = beam.particle_number()/beam.rms_sigma_s();
     else lambda = 2*sqrt(k_pi)*beam.particle_number()/lattice.circ();
      double beta3 = beam.beta();
     beta3 = beta3*beta3*beta3;
     double gamma4 = beam.gamma();
     gamma4 *= gamma4;
     gamma4 *= gamma4;
-    return k_c*beam.r()*beam.r()*lambda/(8*k_pi*beam.dp_p()*beta3*gamma4*beam.emit_x()*beam.emit_y());
+    return k_c*beam.classical_radius()*beam.classical_radius()*lambda/(8*k_pi*beam.rms_dp_p()*beta3*gamma4*beam.rms_emit_x()*beam.rms_emit_y());
 }
 
 void IBSSolver_BM_Complete::calc_itgl(int i, std::array<std::array<double, 3>,3>& ii, std::array<std::array<double, 3>,3>& l,
@@ -812,8 +814,8 @@ void IBSSolver_BM_Complete::calc_itgl(int i, std::array<std::array<double, 3>,3>
             ii[j][k] *= d;
 }
 
-rate3d IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam) {
-    int n_element = lattice.n_element();
+rate3d IBSSolver_BM_Complete::rate(const Lattice &lattice, const IonBeam &beam) {
+    const int n_element = lattice.n_element();
 
     if (cache_invalid) {
         init_optc(lattice);
@@ -891,7 +893,7 @@ rate3d IBSSolver_BM_Complete::rate(const Lattice &lattice, const Beam &beam) {
     }
 
     if(k_>0)
-        ibs_coupling(rx, ry, k_, beam.emit_nx(), beam.emit_ny());
+        ibs_coupling(rx, ry, k_, beam.rms_emit_nx(), beam.rms_emit_ny());
     return std::make_tuple(rx, ry, rs);
 }
 
