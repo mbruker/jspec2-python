@@ -8,7 +8,6 @@ class RMSModel:public Simulator {
  private:
     void update_ibeam(IonBeam& ionBeam,  ElectronBeam& ebeam, double dt) override;
     void adjust_rf_voltage() override;
-//    void save_ions(int i, IonBeam& ion_sample) override { };
  public:
     using Simulator::Simulator;
 };

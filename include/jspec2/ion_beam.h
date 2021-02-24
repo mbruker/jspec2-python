@@ -13,10 +13,11 @@ using std::vector;
 using std::string;
 using std::array;
 
+
 class IonBeam {
 protected:
-    vector<double> x_bet, xp_bet, y_bet, yp_bet;
     vector<double> x, y, xp, yp, ds, dp_p;
+    vector<double> x_bet, xp_bet, y_bet, yp_bet;
     int n_ = 0; //Number of sample particles.
     Twiss twiss;
     double center_x_ = 0;
@@ -50,7 +51,6 @@ public:
            double sigma_s, double n_particle);
     void adjust_disp();
     void adjust_disp_inv();
-    void save_ions_sdds(string filename) const;
     
     // getters for computation vectors
     vector<double>& cdnt_x_bet() { return x_bet; }

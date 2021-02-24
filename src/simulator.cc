@@ -34,7 +34,8 @@ void Simulator::run(IonBeam& ionBeam, ElectronBeam& ebeam,
     State state;
     
     for(int i=0; i<=n_steps; ++i) {
-//        save_ions(i, ion_sample);
+        if (i % ion_output_interval == 0)
+            save_ions(state.t, ionBeam);
         
         state.ex = ionBeam.rms_emit_nx();
         state.ey = ionBeam.rms_emit_ny();
@@ -69,6 +70,6 @@ void Simulator::run(IonBeam& ionBeam, ElectronBeam& ebeam,
 
         state.t += dt;
     }
-//    save_ions(n_steps, ion_sample);
+    save_ions(state.t, ionBeam);
 
 }

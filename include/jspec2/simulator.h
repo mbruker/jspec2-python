@@ -54,7 +54,7 @@ protected:
 //    void output(bool bunched=true, double v_rf=0, double lum=0);
     virtual void update_ibeam(IonBeam& ionBeam, ElectronBeam& ebeam, double dt)=0;
     virtual void adjust_rf_voltage() = 0;
-//    virtual void save_ions(int i, IonBeam& ion_sample) = 0;
+    virtual void save_ions(double t, IonBeam& ion_sample) { };
     virtual double calc_timestep(double time, int n_steps) const;
     
     DataSink *datasink = nullptr;
@@ -97,6 +97,7 @@ void set_datasink(DataSink *_datasink) { datasink = _datasink; }
 class DataSink {
 public:
     virtual void output_simulator_state(const Simulator::State &state) = 0;
+    virtual void output_ion_phasespace(double t, const IonBeam &ionBeam) = 0;
 };
 
 

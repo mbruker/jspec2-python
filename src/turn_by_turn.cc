@@ -68,38 +68,29 @@ void TurnByTurnModel::move_particles(IonBeam& ionBeam) {
     int n_sample = ionBeam.n_sample();
     ionBeam.adjust_disp_inv();
 
-    if(idx>=0 && idx<n_sample) {
-        if(file_exists(filename_single_particle)) {
-            out_single_particle<<x_bet.at(idx)<<' '<<xp_bet.at(idx)<<' '<<y_bet.at(idx)<<' '<<yp_bet.at(idx)<<' '
-                                <<dp_p.at(idx)<<' '<<ds.at(idx)<<std::endl;
-        }
-        else {
-            filename_single_particle += time_to_filename()+".txt";
-            out_single_particle.open(filename_single_particle);
-            out_single_particle.precision(10);
-        }
-    }
-
     double bet_x = twiss.bet_x;
     double bet_y = twiss.bet_y;
     double alf_x = twiss.alf_x;
     double alf_y = twiss.alf_y;
     double gamma_x = (1+alf_x*alf_x)/bet_x;
     double gamma_y = (1+alf_y*alf_y)/bet_y;
+    const double sin_phi_x = sin(2*k_pi*Qx);
+    const double cos_phi_x = cos(2*k_pi*Qx);
+    const double sin_phi_y = sin(2*k_pi*Qy);
+    const double cos_phi_y = cos(2*k_pi*Qy);
+    
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
     for (int i=0; i<n_sample; ++i) {
-        double phi = 2*k_pi*Qx;
-        double x_bet_0 = x_bet[i];
-        double xp_bet_0 = xp_bet[i];
-        x_bet[i] = (cos(phi)+alf_x*sin(phi))*x_bet_0 + bet_x*sin(phi)*xp_bet_0;
-        xp_bet[i] = -gamma_x*sin(phi)*x_bet_0 + (cos(phi)-alf_x*sin(phi))*xp_bet_0;
-        phi = 2*k_pi*Qy;
-        double y_bet_0 = y_bet[i];
-        double yp_bet_0 = yp_bet[i];
-        y_bet[i] = (cos(phi)+alf_y*sin(phi))*y_bet_0 + bet_y*sin(phi)*yp_bet_0;
-        yp_bet[i] = -gamma_y*sin(phi)*y_bet_0 + (cos(phi)-alf_y*sin(phi))*yp_bet_0;
+        const double x_bet_0 = x_bet[i];
+        const double xp_bet_0 = xp_bet[i];
+        x_bet[i] = (cos_phi_x+alf_x*sin_phi_x)*x_bet_0 + bet_x*sin_phi_x*xp_bet_0;
+        xp_bet[i] = -gamma_x*sin_phi_x*x_bet_0 + (cos_phi_x-alf_x*sin_phi_x)*xp_bet_0;
+        const double y_bet_0 = y_bet[i];
+        const double yp_bet_0 = yp_bet[i];
+        y_bet[i] = (cos_phi_y+alf_y*sin_phi_y)*y_bet_0 + bet_y*sin_phi_y*yp_bet_0;
+        yp_bet[i] = -gamma_y*sin_phi_y*y_bet_0 + (cos_phi_y-alf_y*sin_phi_y)*yp_bet_0;
     }
 
     //Longitudinal motion.

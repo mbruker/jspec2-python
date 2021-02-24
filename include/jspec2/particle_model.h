@@ -19,7 +19,7 @@ class ParticleModel: public Simulator {
     virtual void apply_edge_kick(ElectronBeam& ebeam, IonBeam& ionBeam) { };
     void update_beam_parameters(IonBeam& ionBeam);
     virtual void adjust_rf_voltage() override { };
-//    virtual void save_ions(int i, IonBeam& ion_sample) override;
+    virtual void save_ions(double t, IonBeam& ion_sample) override;
  public:
     using Simulator::Simulator;
 };

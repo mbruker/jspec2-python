@@ -22,7 +22,9 @@ void init_ions(py::module& m) {
         .def_property_readonly("mass", &IonBeam::mass)
         .def_property_readonly("kinetic_energy", &IonBeam::kinetic_energy)
         .def_property_readonly("beta", &IonBeam::beta)
-        .def_property_readonly("gamma", &IonBeam::gamma);
+        .def_property_readonly("gamma", &IonBeam::gamma)
+        .def_property_readonly("twiss", &IonBeam::get_twiss)
+        .def_property_readonly("n_samples", &IonBeam::n_sample);
 
     py::class_<IonBeam_MonteCarlo,IonBeam>(m, "IonBeam_MonteCarlo")
         .def(py::init<const Twiss &, int, double, double, double, double, double, double, double, int>(),
@@ -53,9 +55,6 @@ void init_ions(py::module& m) {
              py::arg("binary") = false,
              py::arg("n_buffer") = 1000
             )
-        .def("adjust_disp", &IonBeam_MonteCarlo::adjust_disp)
-        .def("adjust_disp_inv", &IonBeam_MonteCarlo::adjust_disp_inv)
-        .def("save_ions_sdds", &IonBeam_MonteCarlo::save_ions_sdds)
         .def("get_twiss", &IonBeam_MonteCarlo::get_twiss)
         .def("n_sample", &IonBeam_MonteCarlo::n_sample)
 // TODO What the emittance getters ought to look like will become clear
@@ -80,11 +79,6 @@ void init_ions(py::module& m) {
              py::arg("n_l")
             )
         .def("single_particle_grid", &IonBeam_SingleParticle::single_particle_grid)
-        .def("adjust_disp", &IonBeam_SingleParticle::adjust_disp)
-        .def("adjust_disp_inv", &IonBeam_SingleParticle::adjust_disp_inv)
-        .def("save_ions_sdds", &IonBeam_SingleParticle::save_ions_sdds)
-        .def("get_twiss", &IonBeam_SingleParticle::get_twiss)
-        .def("n_sample", &IonBeam_SingleParticle::n_sample)
 //        .def("emit", py::overload_cast<double&, double&, double&>(&IonBeam_SingleParticle::emit))
 //        .def("emit", py::overload_cast<vector<double>&, vector<double>&, vector<double>&, vector<double>&,vector<double>&,
 //                vector<double>&, double&, double&, double&>(&IonBeam_SingleParticle::emit))

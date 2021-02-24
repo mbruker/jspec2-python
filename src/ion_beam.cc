@@ -32,30 +32,6 @@ IonBeam::IonBeam(const Twiss &_twiss, int charge_number, double mass, double kin
     p0_SI_ = gamma_*mass_*1e6*k_e*beta_/k_c;
 }
 
-void IonBeam::save_ions_sdds(string filename) const {
-    using std::endl;
-    std::ofstream output_particles;
-    output_particles.open(filename);
-    output_particles<<"SDDS1"<<endl;
-    output_particles<<"! Define colums:"<<endl
-        <<"&column name=x, type=double, units=m, description=NULL, &end"<<endl
-        <<"&column name=xp, type=double, units=NULL, description=NULL, &end"<<endl
-        <<"&column name=y, type=double, units=m, description=NULL, &end"<<endl
-        <<"&column name=yp, type=double, units=NULL, description=NULL, &end"<<endl
-        <<"&column name=ds, type=double, units=m, description=NULL, &end"<<endl
-        <<"&column name=dp/p, type=double, units=NULL, description=NULL, &end"<<endl
-        <<"!Declare ASCII data and end the header"<<endl
-        <<"&data mode=ascii, &end"<<endl
-        <<n_<<endl;
-    output_particles.precision(10);
-    output_particles<<std::showpos;
-    output_particles<<std::scientific;
-    for(int i=0; i<n_; ++i) {
-        output_particles<<x[i]<<' '<<xp[i]<<' '<<y[i]<<' '<<yp[i]<<' '<<ds[i]<<' '<<dp_p[i]<<std::endl;
-    }
-    output_particles.close();
-}
-
 //Calculate the transverse emittance statistically
 double IonBeam_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const vector<double>&xp) const
 {

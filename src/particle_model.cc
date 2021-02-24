@@ -173,13 +173,8 @@ void ParticleModel::update_beam_parameters(IonBeam& ionBeam) {
     }
 }
 
-/*void ParticleModel::save_ions(int i, IonBeam& ion_sample) {
-    if (ion_save_itvl>0 && i%ion_save_itvl==0) {
-            std::size_t found = outfilename.find_last_of(".");
-            if (found == string::npos)
-                ion_sample.save_ions_sdds(outfilename+"_ions"+std::to_string(i)+".txt");
-            else
-                ion_sample.save_ions_sdds(outfilename.substr(0,found)+"_ions_"+std::to_string(i)+".txt");
-    }
+void ParticleModel::save_ions(double t, IonBeam& ion_sample)
+{
+    if (datasink)
+        datasink->output_ion_phasespace(t, ion_sample);
 }
-*/
