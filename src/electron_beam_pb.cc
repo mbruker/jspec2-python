@@ -48,17 +48,21 @@ void init_electron_beam(py::module &m) {
 
     py::class_<UniformCylinder, ElectronBeam>(m, "UniformCylinder")
         .def(py::init<double, double, double>(),
-	    py::arg("current"),
-	    py::arg("radius"),
-	    py::arg("neutralisation") = 2
-	)
+             py::arg("current"),
+             py::arg("radius"),
+             py::arg("neutralisation") = 2
+            )
         .def("current", &UniformCylinder::current)
         .def("radius", &UniformCylinder::radius)
         .def("shape", &UniformCylinder::shape)
         .def("length", &UniformCylinder::length);
 
     py::class_<UniformHollow, ElectronBeam>(m, "UniformHollow")
-        .def(py::init<double, double, double>())
+        .def(py::init<double, double, double>(),
+             py::arg("current"),
+             py::arg("in_radius"),
+             py::arg("out_radius")
+            )
         .def("current", &UniformHollow::current)
         .def("shape", &UniformHollow::shape)
         .def("length", &UniformHollow::length)
@@ -66,7 +70,12 @@ void init_electron_beam(py::module &m) {
         .def("in_radius", &UniformHollow::in_radius);
 
     py::class_<UniformHollowBunch, ElectronBeam>(m, "UniformHollowBunch")
-        .def(py::init<double, double, double, double>())
+        .def(py::init<double, double, double, double>(),
+             py::arg("current"),
+             py::arg("in_radius"),
+             py::arg("out_radius"),
+             py::arg("length")
+            )
         .def("current", &UniformHollowBunch::current)
         .def("shape", &UniformHollowBunch::shape)
         .def("length", &UniformHollowBunch::length)
@@ -74,26 +83,42 @@ void init_electron_beam(py::module &m) {
         .def("in_radius", &UniformHollowBunch::in_radius);
 
     py::class_<UniformBunch, ElectronBeam>(m, "UniformBunch")
-        .def(py::init<double, double, double>())
+        .def(py::init<double, double, double>(),
+             py::arg("current"),
+             py::arg("radius"),
+             py::arg("length")
+            )
         .def("current", &UniformBunch::current)
         .def("shape", &UniformBunch::shape)
         .def("length", &UniformBunch::length)
         .def("radius", &UniformBunch::radius);
 
     py::class_<EllipticUniformBunch, ElectronBeam>(m, "EllipticUniformBunch")
-        .def(py::init<double, double, double, double>())
+        .def(py::init<double, double, double, double>(),
+             py::arg("current"),
+             py::arg("rh"),
+             py::arg("rv"),
+             py::arg("length")
+            )
         .def("shape", &EllipticUniformBunch::shape)
         .def("length", &EllipticUniformBunch::length);
 
     py::class_<GaussianBunch, ElectronBeam>(m, "GaussianBunch")
-        .def(py::init<double, double, double, double>())
+        .def(py::init<double, double, double, double>(),
+             py::arg("n_electron"),
+             py::arg("sigma_x"),
+             py::arg("sigma_y"),
+             py::arg("sigma_s")
+            )
         .def("shape", &GaussianBunch::shape)
         .def("length", &GaussianBunch::length)
         .def("set_angles", &GaussianBunch::set_angles);
 
     py::class_<ParticleBunch, ElectronBeam>(m, "ParticleBunch")
-        .def(py::init<double, std::string, double>())
-        .def(py::init<double, std::string>())
+        .def(py::init<double, std::string, double>(),
+             py::arg("n_electron"),
+             py::arg("filename"),
+             py::arg("length") = 0)
         .def("shape", &ParticleBunch::shape)
         .def("length", &ParticleBunch::length)
         .def("bunched", &ParticleBunch::bunched)

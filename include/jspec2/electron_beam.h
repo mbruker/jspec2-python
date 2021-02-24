@@ -244,10 +244,14 @@ public:
     void set_binary(bool b) {binary_ = b;}
     void set_skip(int n) {line_skip_ = n;}
 
-    ParticleBunch(double n_electron, std::string filename, double length):n_electron_(n_electron),
-        filename_(filename),length_(length){temperature_ = Temperature::VARY;};
-    ParticleBunch(double n_electron, std::string filename):n_electron_(n_electron),
-        filename_(filename){temperature_ = Temperature::VARY;};
+    // TODO Why doesn't this constructor load the data?
+    ParticleBunch(double n_electron, std::string filename, double length = 0)
+        : n_electron_(n_electron),
+          filename_(filename),
+          length_(length)
+    {
+        temperature_ = Temperature::VARY;
+    }
     void load_particle(long int n);
     void load_particle();
 
