@@ -222,6 +222,8 @@ IonBeam_MonteCarlo::IonBeam_MonteCarlo(const Twiss &_twiss, int _charge_number, 
     y.resize(n_sample,0);
     xp.resize(n_sample,0);
     yp.resize(n_sample,0);
+    
+    create_samples();
 }
 
 IonBeam_MonteCarlo::IonBeam_MonteCarlo(const Twiss &_twiss, int _charge_number, double _mass, double _kinetic_energy, double _emit_nx, double _emit_ny, double _dp_p,
@@ -279,6 +281,8 @@ IonBeam_SingleParticle::IonBeam_SingleParticle(const Twiss &_twiss, int _charge_
     y.resize(n_);
     xp.resize(n_);
     yp.resize(n_);
+    
+    create_samples();
 };
 
 void IonBeam_SingleParticle::single_particle_grid()

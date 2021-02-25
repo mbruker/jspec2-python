@@ -28,10 +28,8 @@ void ParticleModel::update_ibeam(IonBeam& ionBeam, ElectronBeam& ebeam, double d
     move_particles(ionBeam);
     update_beam_parameters(ionBeam);
 
-    if(fixed_bunch_length && ionBeam.bunched()) {
-        ring.update_bet_s();
+    if(fixed_bunch_length && ionBeam.bunched())
         ring.update_rf_voltage();
-    }
 }
 
 void ParticleModel::apply_cooling_kick(double freq, IonBeam& ionBeam, double dt) {
@@ -130,17 +128,17 @@ void ParticleModel::move_particles(IonBeam& ionBeam) {
 
     if(ionBeam.bunched()){
         uniform_random(n_sample, rdn, -1, 1);
-        double beta_s = ring.beta_s();
-        if(fixed_bunch_length) beta_s =  ionBeam.rms_sigma_s()/rms(n_sample, dp_p);
-        double beta_s2_inv = 1/(beta_s*beta_s);
+        const double beta_s = fixed_bunch_length
+            ? (ionBeam.rms_sigma_s()/rms(n_sample, dp_p))
+            : ionBeam.beta_s();
+        const double beta_s2_inv = 1/(beta_s*beta_s);
         vector<double>& ds = ionBeam.cdnt_ds();
         #ifdef _OPENMP
             #pragma omp parallel for
         #endif // _OPENMP
         for(int i=0; i<n_sample; ++i){
-            double I = ds[i]*ds[i]*beta_s2_inv+dp_p[i]*dp_p[i];
-            I = sqrt(I);
-            double phi = k_pi*rdn[i];
+            const double I = sqrt(ds[i]*ds[i]*beta_s2_inv+dp_p[i]*dp_p[i]);
+            const double phi = k_pi*rdn[i];
             dp_p[i] = I*sin(phi);
             ds[i] = I*beta_s*cos(phi);
         }

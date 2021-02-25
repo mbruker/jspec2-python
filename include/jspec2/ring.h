@@ -45,7 +45,6 @@ class Lattice{
 
 class Ring {
 protected:
-    double beta_s_ = 0;         //Synchrotron function, use to calculate rms bunch length from momentum spread
     double f0_ = 0;               // revolution frequency.
     double w0_ = 0;       // angular revolution frequency.
     const IonBeam *ionBeam_;
@@ -60,7 +59,6 @@ protected:
     double rf_phi_ = 0;          // RF phase in 2*pi
     double gamma_tr_ = 0;        // Transition gamma
  public:
-    double beta_s() const { return beta_s_; }
     double circ() const { return lattice_.circ(); }
     double f0() const {return f0_;}
     double w0() const {return w0_;}
@@ -85,7 +83,6 @@ protected:
          double rf_phi = 0,
          double gamma_tr = 0
         );
-    void update_bet_s();
     void update_rf_voltage();
 };
 

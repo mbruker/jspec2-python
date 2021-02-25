@@ -142,17 +142,18 @@ void TurnByTurnModel::move_particles(IonBeam& ionBeam) {
             }
         }
         else if(ring.qs()>0) {//Longitudinal motion by tune
-            double phi = 2*k_pi*ring.qs();
-            double inv_beta_s = 1/ring.beta_s();
-            double beta_s = ring.beta_s();
+            const double sin_phi = sin(2*k_pi*ring.qs());
+            const double cos_phi = cos(2*k_pi*ring.qs());
+            const double beta_s = ionBeam.beta_s();
+            const double inv_beta_s = 1/beta_s;
             #ifdef _OPENMP
                 #pragma omp parallel for
             #endif // _OPENMP
             for (int i=0; i<n_sample; ++i) {
-                double dp_p_0 = dp_p[i];
-                double ds_0 = ds[i];
-                dp_p[i] = cos(phi)*dp_p_0 - sin(phi)*ds_0*inv_beta_s;
-                ds[i] = sin(phi)*dp_p_0*beta_s + cos(phi)*ds_0;
+                const double dp_p_0 = dp_p[i];
+                const double ds_0 = ds[i];
+                dp_p[i] = cos_phi*dp_p_0 - sin_phi*ds_0*inv_beta_s;
+                ds[i] = sin_phi*dp_p_0*beta_s + cos_phi*ds_0;
             }
         }
     }

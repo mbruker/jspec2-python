@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <iostream>
 
 #include "jspec2/twiss.h"
 
@@ -144,8 +145,7 @@ public:
                       const vector<double>& dp_p, const vector<double>&ds) const = 0;
     virtual void create_samples() = 0;
     double beta_s() const {return beta_s_;}
-    // TODO Check if needed
-    void update_bet_s(){beta_s_ = rms_sigma_s_ / rms_dp_p_;}
+    void update_bet_s() { beta_s_ = rms_sigma_s_ / rms_dp_p_; }
 };
 
 class IonBeam_MonteCarlo: public IonBeam {

@@ -127,8 +127,6 @@ Lattice::Lattice(double circ)
 Ring::Ring(const Lattice &lattice, const IonBeam *beam, double qx, double qy, double qs, double rf_voltage, int rf_h, double rf_phi, double gamma_tr)
     : ionBeam_(beam), lattice_(lattice), qx_(qx), qy_(qy), qs_(qs), rf_voltage_(rf_voltage), rf_h_(rf_h), rf_phi_(rf_phi), gamma_tr_(gamma_tr)
 {
-    if(beam->bunched())
-        update_bet_s();
     f0_ = ionBeam_->beta()*k_c/lattice.circ();
     w0_ = 2*k_pi*f0_;
 
@@ -161,11 +159,6 @@ double Ring::calc_sync_tune_by_rf() const
 }
 */
 
-void Ring::update_bet_s()
-{
-    beta_s_ = ionBeam_->rms_sigma_s()/ionBeam_->rms_dp_p();
-}
-
 void Ring::update_rf_voltage()
 {
     if(ionBeam_->bunched()) {
@@ -177,9 +170,12 @@ void Ring::update_rf_voltage()
     else {
         rf_voltage_ = 0;
     }
+    std::cout << "updated rf voltage: " << rf_voltage_ << std::endl;
 }
 
 double Ring::slip_factor() const
 {
+    if (gamma_tr_ == 0)
+        throw std::runtime_error("Ring::slip_factor(): transition gamma not defined");
     return 1/(gamma_tr_*gamma_tr_) - 1/(ionBeam_->gamma()*ionBeam_->gamma());
 }

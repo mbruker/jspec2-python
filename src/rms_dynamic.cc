@@ -11,7 +11,7 @@ void RMSModel::update_ibeam(IonBeam& ionBeam, ElectronBeam& /*ebeam*/, double dt
 {
     const double emit_nx = ionBeam.rms_emit_nx() * exp(state.rx*dt);
     const double emit_ny = ionBeam.rms_emit_ny() * exp(state.ry*dt);
-    // Is there a reason why we compute the sqrt of a square?
+    // TODO Is there a reason why we compute the sqrt of a square?
     // ionBeam.rms_dp_p() can't be negative, can it?
     const double dp = sqrt(ionBeam.rms_dp_p() * ionBeam.rms_dp_p() * exp(state.rs*dt));
 
@@ -22,10 +22,10 @@ void RMSModel::update_ibeam(IonBeam& ionBeam, ElectronBeam& /*ebeam*/, double dt
     if(ionBeam.bunched()) {
         if(fixed_bunch_length) {
             ring.update_rf_voltage();
-            ring.update_bet_s();
+            ionBeam.update_bet_s();
         }
         else {
-            ionBeam.set_sigma_s(ring.beta_s()*dp);
+            ionBeam.set_sigma_s(ionBeam.beta_s()*dp);
         }
     }
 

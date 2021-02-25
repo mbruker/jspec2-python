@@ -33,6 +33,8 @@
 
 - Example files!
 
+- README.md is outdated. No muparser dependency, but cmake. Show Python example
+
 - Originally, Ions::center and Beam::center coexisted and were
   used in a few places, but NEITHER had any purpose.
   I have merged them into one, but of course, it still doesn't do anything

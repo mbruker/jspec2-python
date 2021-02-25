@@ -43,7 +43,6 @@ void init_ring(py::module& m ){
              py::arg("rf_phi") = 0,
              py::arg("gamma_tr") = 0
         )
-        .def_property_readonly("beta_s", &Ring::beta_s)
         .def_property_readonly("circ", &Ring::circ)
         .def_property_readonly("f0", &Ring::f0)
         .def_property_readonly("w0", &Ring::w0)
