@@ -22,7 +22,6 @@ protected:
     double bunch_separate_ = 0;
     double t_cooler_ = 0;
     int n_long_sample_ = 50;
-    int scratch_size = 0;
     bool dual_force_solver = false;
     bool save_force = false;
     vector<double> ne;
@@ -31,14 +30,14 @@ protected:
     vector<double> force_x, force_y, force_z;
     void electron_density(const IonBeam& ion_sample, ElectronBeam &ebeam);
     void init_scratch(int n_sample);
-    void space_to_dynamic(int n_sample, const IonBeam &ion_sample);
-    void beam_frame(int n_sample, double gamma_e);
-    void force(int n_sample, const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
-    void restore_velocity(int n_sample, ElectronBeam &ebeam);
+    void space_to_dynamic(const IonBeam &ion_sample);
+    void beam_frame(double gamma_e);
+    void lab_frame(double gamma_e);
+    void force(const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
+//    void restore_velocity(ElectronBeam &ebeam);
     void bunched_to_coasting(IonBeam &ion, ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
-    void lab_frame(int n_sample, double gamma_e);
-    void force_distribute(int n_sample, const IonBeam &ion);
-    void apply_kick(int n_sample, const IonBeam& ion);
+    void force_distribute(const IonBeam &ion);
+    void apply_kick(const IonBeam& ion);
     void save_force_sdds_head(std::ofstream& of, int n);
     FrictionForceSolver* force_solver_l;
 public:

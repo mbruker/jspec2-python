@@ -23,8 +23,6 @@ void Simulator::run(IonBeam& ionBeam, ElectronBeam& ebeam,
     
     adjust_rf_voltage();
 
-    State state;
-    
     for(int i=0; i<=n_steps; ++i) {
         if (i % ion_output_interval == 0)
             save_ions(state.t, ionBeam);

@@ -2,9 +2,6 @@
 - The thing with the dual force solver seems dirty.
   Is there a clean way?
 
-- update_bet_s() exists in both Ions and Ring. Find out if
-  this makes sense
-
 - Can other_effects.cc be removed?
   
 - Replace assertions by exceptions (and properly expose those to Python).

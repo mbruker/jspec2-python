@@ -170,7 +170,6 @@ void Ring::update_rf_voltage()
     else {
         rf_voltage_ = 0;
     }
-    std::cout << "updated rf voltage: " << rf_voltage_ << std::endl;
 }
 
 double Ring::slip_factor() const

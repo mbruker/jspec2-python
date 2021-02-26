@@ -129,7 +129,7 @@ void ParticleModel::move_particles(IonBeam& ionBeam) {
     if(ionBeam.bunched()){
         uniform_random(n_sample, rdn, -1, 1);
         const double beta_s = fixed_bunch_length
-            ? (ionBeam.rms_sigma_s()/rms(n_sample, dp_p))
+            ? (ionBeam.rms_sigma_s()/rms(dp_p))
             : ionBeam.beta_s();
         const double beta_s2_inv = 1/(beta_s*beta_s);
         vector<double>& ds = ionBeam.cdnt_ds();
@@ -158,12 +158,12 @@ void ParticleModel::update_beam_parameters(IonBeam& ionBeam) {
 
     if(ionBeam.bunched()) {
         if(fixed_bunch_length) {
-            ionBeam.set_dp_p(rms(ionBeam.n_sample(), ionBeam.cdnt_dp_p()));
+            ionBeam.set_dp_p(rms(ionBeam.cdnt_dp_p()));
             ionBeam.update_bet_s();
         }
         else {
-            ionBeam.set_sigma_s(rms(ionBeam.n_sample(), ionBeam.cdnt_ds()));
-            ionBeam.set_dp_p(rms(ionBeam.n_sample(), ionBeam.cdnt_dp_p()));
+            ionBeam.set_sigma_s(rms(ionBeam.cdnt_ds()));
+            ionBeam.set_dp_p(rms(ionBeam.cdnt_dp_p()));
         }
     }
     else {
