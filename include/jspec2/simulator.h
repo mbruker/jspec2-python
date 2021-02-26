@@ -10,7 +10,6 @@ class ElectronBeam;
 class Cooler;
 class IBSSolver;
 class ECoolRate;
-class FrictionForceSolver;
 class LuminositySolver;
 
 using std::vector;
@@ -43,13 +42,12 @@ protected:
 
     IBSSolver *ibs_solver = nullptr;
     ECoolRate *ecool_solver = nullptr;
-    FrictionForceSolver *force_solver = nullptr;
     LuminositySolver *lum_solver = nullptr;
     
     State state;
 public:
-    Simulator(Ring &_ring, Cooler &_cooler, IBSSolver *_ibs_solver, ECoolRate *_ecool_solver, FrictionForceSolver *_force_solver, LuminositySolver *_lum_solver)
-    : ring(_ring), cooler(_cooler), ibs_solver(_ibs_solver), ecool_solver(_ecool_solver), force_solver(_force_solver), lum_solver(_lum_solver) { }
+    Simulator(Ring &_ring, Cooler &_cooler, IBSSolver *_ibs_solver, ECoolRate *_ecool_solver, LuminositySolver *_lum_solver)
+    : ring(_ring), cooler(_cooler), ibs_solver(_ibs_solver), ecool_solver(_ecool_solver), lum_solver(_lum_solver) { }
     void set_edge_effect(bool b){edge_effect = b;}
     void set_datasink(DataSink *_datasink) { datasink = _datasink; }
 
@@ -62,12 +60,5 @@ public:
                      int ion_output_interval = 1
                     );
 };
-
-class DataSink {
-public:
-    virtual void output_simulator_state(const Simulator::State &state) = 0;
-    virtual void output_ion_phasespace(double t, const IonBeam &ionBeam) = 0;
-};
-
 
 #endif // SIMULATOR_H_INCLUDED

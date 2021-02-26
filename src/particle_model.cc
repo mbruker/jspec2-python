@@ -1,4 +1,3 @@
-#include <chrono>
 #include <cmath>
 
 #include "jspec2/electron_beam.h"
@@ -9,6 +8,7 @@
 #include "jspec2/ion_beam.h"
 #include "jspec2/cooler.h"
 #include "jspec2/ring.h"
+#include "jspec2/datasink.h"
 
 void ParticleModel::update_ibeam(IonBeam& ionBeam, ElectronBeam& ebeam, double dt) {
 //    vector<double>& dp_p = ion_sample.cdnt_dp_p();

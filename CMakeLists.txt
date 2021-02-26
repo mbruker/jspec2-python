@@ -41,6 +41,7 @@ set(HEADER_FILES
         ${INCLUDE_DIR}/jspec2/electron_beam.h
         ${INCLUDE_DIR}/jspec2/constants.h
         ${INCLUDE_DIR}/jspec2/cooler.h
+        ${INCLUDE_DIR}/jspec2/datasink.h
         ${INCLUDE_DIR}/jspec2/ecooling.h
         ${INCLUDE_DIR}/jspec2/force.h
         ${INCLUDE_DIR}/jspec2/functions.h
@@ -60,6 +61,7 @@ set(HEADER_FILES
 set(PYTHON_FILES
         src/electron_beam_pb.cc
         src/cooler_pb.cc
+	src/datasink_pb.cc
         src/ecooling_pb.cc
         src/force_pb.cc
         src/ibs_pb.cc

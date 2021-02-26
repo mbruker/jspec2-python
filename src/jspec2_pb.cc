@@ -19,6 +19,7 @@ void init_force(py::module &);
 void init_ions(py::module &);
 void init_luminosity(py::module &);
 void init_simulators(py::module &);
+void init_datasink(py::module &);
 
 PYBIND11_MODULE(jspec, m) {
     m.doc() = "JSPEC lib";
@@ -31,4 +32,5 @@ PYBIND11_MODULE(jspec, m) {
     init_ions(m);
     init_luminosity(m);
     init_simulators(m);
+    init_datasink(m);
 }

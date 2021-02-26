@@ -1,10 +1,4 @@
-
-#include <algorithm>
-#include <chrono>
 #include <cmath>
-#include <cstring>
-#include <fstream>
-
 #ifdef _OPENMP
     #include <omp.h>
 #endif // _OPENMP
@@ -13,6 +7,7 @@
 #include "jspec2/electron_beam.h"
 #include "jspec2/constants.h"
 #include "jspec2/cooler.h"
+#include "jspec2/datasink.h"
 #include "jspec2/force.h"
 #include "jspec2/functions.h"
 #include "jspec2/ring.h"
@@ -94,13 +89,13 @@ void ECoolRate::lab_frame(double gamma_e)
 }
 
 //Calculate friction force
-void ECoolRate::force(const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver)
+void ECoolRate::force(const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler)
 {
     const auto n_sample = ion.n_sample();
     
     //set parameters for friction force calculation
-    force_solver.set_mag_field(cooler.magnetic_field());
-    force_solver.set_time_cooler(t_cooler_);
+    force_solver->set_mag_field(cooler.magnetic_field());
+    force_solver->set_time_cooler(t_cooler_);
     const double d_beta = ebeam.beta() - ion.beta();
     double cv_l = 0;
     if(!iszero(d_beta, 1e-6)) cv_l = d_beta*k_c;
@@ -111,56 +106,36 @@ void ECoolRate::force(const IonBeam &ion, const ElectronBeam &ebeam, const Coole
             v -= cv_l;
         }
     }
-    force_solver.friction_force(ion.charge_number(), n_sample, v_tr, v_long, ne, ebeam, force_x, force_z);
+    force_solver->friction_force(ion.charge_number(), n_sample, v_tr, v_long, ne, ebeam, force_x, force_z);
 
-    if(dual_force_solver){
-        force_solver_l->set_mag_field(cooler.magnetic_field());
-        force_solver_l->set_time_cooler(t_cooler_);
-        force_solver_l->friction_force(ion.charge_number(), n_sample, v_tr, v_long, ne, ebeam, force_y, force_z); //force_y will be ignored in the following.
+    if(longitudinal_force_solver) {
+        longitudinal_force_solver->set_mag_field(cooler.magnetic_field());
+        longitudinal_force_solver->set_time_cooler(t_cooler_);
+        longitudinal_force_solver->friction_force(ion.charge_number(), n_sample, v_tr, v_long, ne, ebeam, force_y, force_z); //force_y will be ignored in the following.
     }
 
-    if(save_force) {
-        string filename = time_to_filename();
-        filename = "Friction_force_on_ions_" + filename + ".sdds";
-        std::ofstream of;
-        of.open(filename);
-        if(of.is_open()){
-            std::cout<<"File opened: "<<filename<<" ."<<std::endl;
-            save_force_sdds_head(of, n_sample);
-            of.precision(10);
-            of<<std::showpos;
-            of<<std::scientific;
-            for(int i=0; i<n_sample; ++i) {
-                of<<ne.at(i)<<' '<<v_tr.at(i)<<' '<<v_long.at(i)<<' '<<force_x.at(i)<<' '<<force_z.at(i);
-                of<<std::endl;
-            }
-            of.close();
-        }
-        else {
-            std::cout<<"Failed to open file: "<<filename<<" !"<<std::endl;
-        }
-    }
+    if(datasink)
+        datasink->output_ecool_force(ne, v_tr, v_long, force_x, force_z);
 }
 
-void ECoolRate::bunched_to_coasting(IonBeam& ion, ElectronBeam &ebeam, const Cooler &cooler,
-                        FrictionForceSolver &force_solver){
-    int n_sample = ion.n_sample();
+void ECoolRate::bunched_to_coasting(IonBeam& ion, ElectronBeam &ebeam, const Cooler &cooler)
+{
+    const int n_sample = ion.n_sample();
     int count = 1;
     vector<double> force_tr_rcd(n_sample);
     vector<double> force_long_rcd(n_sample);
 
-    double cz_rcd = ion.center_z();
+    const double cz_rcd = ion.center_z();
 
     ebeam.set_p_shift(true);
-    int n_long = n_long_sample_;
-    double length = ebeam.length();
-    double step = length/n_long;
-    double gamma_e_inv = 1/ebeam.gamma();
+    const double length = ebeam.length();
+    const double step = length/n_long_sample_;
+    const double gamma_e_inv = 1/ebeam.gamma();
     for(double cz = cz_rcd-0.5*length; cz <= cz_rcd+0.5*length; cz += step) {
         ion.set_center_z(cz);
         electron_density(ion, ebeam);
         for(int i=0; i<n_sample; ++i) ne[i] *= gamma_e_inv;
-        force(ion, ebeam, cooler, force_solver);
+        force(ion, ebeam, cooler);
         for(int i=0; i<n_sample; ++i) {
             force_tr_rcd[i] += force_x[i];
             force_long_rcd[i] += force_z[i];
@@ -170,7 +145,7 @@ void ECoolRate::bunched_to_coasting(IonBeam& ion, ElectronBeam &ebeam, const Coo
 
     ion.set_center_z(cz_rcd);
     ebeam.set_p_shift(false);
-    double count_inv = 1.0/static_cast<double>(count);
+    const double count_inv = 1.0/static_cast<double>(count);
     for(int i=0; i<n_sample; ++i) {
         force_x[i] = force_tr_rcd[i]*count_inv;
         force_z[i] = force_long_rcd[i]*count_inv;
@@ -231,8 +206,8 @@ void ECoolRate::adjust_rate(const IonBeam &ion, const ElectronBeam &ebeam, initi
     }
 }
 
-rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver,
-                IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring) {
+rate3d ECoolRate::ecool_rate(IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring)
+{
     const auto n_sample = ion.n_sample();
     init_scratch(n_sample);
 
@@ -244,14 +219,14 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver,
     //Transfer into e- beam frame
     beam_frame(ebeam.gamma());
     //Calculate friction force
-    force(ion, ebeam, cooler, force_solver);
+    force(ion, ebeam, cooler);
 //    //Restore the longitudinal velocity if it has been changed due to electron velocity gradient
 //    restore_velocity(ebeam);
 
     //Special treatment for bunched electron beam to cool coasting ion beam
     if(!ion.bunched()&&ebeam.bunched()) {
-        bunched_to_coasting(ion, ebeam, cooler, force_solver);
-        force(ion, ebeam, cooler, force_solver);
+        bunched_to_coasting(ion, ebeam, cooler);
+        force(ion, ebeam, cooler);
     }
 
     //Transfer back to lab frame
@@ -288,25 +263,11 @@ rate3d ECoolRate::ecool_rate(FrictionForceSolver &force_solver,
     return std::make_tuple(rate_x, rate_y, rate_s);
 }
 
-void ECoolRate::save_force_sdds_head(std::ofstream& of, int n) {
-    using std::endl;
-    of<<"SDDS1"<<endl;
-    of<<"! Define colums:"<<endl
-        <<"&column name=ne, type=double, units=1/m^3, description=\"electron density\", &end"<<endl
-        <<"&column name=v_tr, type=double, units=m/s, description=\"relative transverse velocity\", &end"<<endl
-        <<"&column name=v_long, type=double, units=m/s, description=\"relative longitudinal velocity\", &end"<<endl
-        <<"&column name=force_tr, type=double, units=N, description=\"transverse friction force\", &end"<<endl
-        <<"&column name=force_l, type=double, units=N, description=\"longitudinal friction force\", &end"<<endl
-        <<"!Declare ASCII data and end the header"<<endl
-        <<"&data mode=ascii, &end"<<endl
-        <<n<<endl;
-}
 
-void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const IonBeam &ionBeam, const Cooler &cooler, ElectronBeam &ebeam)
+void ForceCurve::output_force(const IonBeam &ionBeam, const Cooler &cooler, ElectronBeam &ebeam)
 {
     // TODO Something evil is happening in this function. A second ion beam?
     
-    save_force = true;
     if(iszero(dp_p, 1e-14)) n_l = 0;
     if(iszero(angle, 1e-14)) n_tr = 0;
     const int n_sample = (n_tr+1) * (2*n_l+1);
@@ -337,6 +298,6 @@ void ForceCurve::force_to_file(FrictionForceSolver &force_solver, const IonBeam 
     // Transfer into e- beam frame
     beam_frame(ebeam.gamma());
     //Calculate friction force
-    force(ionBeam, ebeam, cooler, force_solver);
+    force(ionBeam, ebeam, cooler);
 }
 

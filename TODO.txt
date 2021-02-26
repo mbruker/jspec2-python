@@ -1,7 +1,4 @@
  
-- The thing with the dual force solver seems dirty.
-  Is there a clean way?
-
 - Can other_effects.cc be removed?
   
 - Replace assertions by exceptions (and properly expose those to Python).
@@ -11,8 +8,7 @@
   grep for printf, perror, assert
 
 - Export all generated data to Python
-    - Ion phase space
-    - Force curve?
+    - IBS per element, anything else?
 
 - Remove load_electrons() etc., load everything through ndarrays
     
@@ -23,10 +19,6 @@
 
 - The constants FrictionForceSolver::k_f and ForcePark::k_f have different values.
   Super dangerous! Can we rename one of them?
-
-- Eliminate n_sample, e.g. from ECoolRate methods
-
-- Why can't Ions & be const in ECoolRate::ecool_rate?
 
 - Example files!
 

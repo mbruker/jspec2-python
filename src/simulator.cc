@@ -8,6 +8,7 @@
 #include "jspec2/functions.h"
 #include "jspec2/luminosity.h"
 #include "jspec2/ion_beam.h"
+#include "jspec2/datasink.h"
 
 double Simulator::calc_timestep(double time, int n_steps) const
 {
@@ -38,7 +39,7 @@ void Simulator::run(IonBeam& ionBeam, ElectronBeam& ebeam,
         }
 
         if(ecool_solver) {
-            std::tie(state.rx_ecool, state.ry_ecool, state.rs_ecool) = ecool_solver->ecool_rate(*force_solver, ionBeam, cooler, ebeam, ring);
+            std::tie(state.rx_ecool, state.ry_ecool, state.rs_ecool) = ecool_solver->ecool_rate(ionBeam, cooler, ebeam, ring);
         }
 
         state.rx = state.rx_ibs + state.rx_ecool;

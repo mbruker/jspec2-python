@@ -1,7 +1,5 @@
 #include <cmath>
 #include <chrono>
-#include <cstdio>
-#include <fstream>
 #include <gsl/gsl_errno.h>
 #include <iostream>
 #ifdef _OPENMP

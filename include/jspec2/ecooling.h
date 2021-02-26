@@ -13,6 +13,7 @@ class IonBeam;
 class FrictionForceSolver;
 class Cooler;
 class Ring;
+class DataSink;
 
 using std::vector;
 using std::initializer_list;
@@ -22,28 +23,29 @@ protected:
     double bunch_separate_ = 0;
     double t_cooler_ = 0;
     int n_long_sample_ = 50;
-    bool dual_force_solver = false;
-    bool save_force = false;
     vector<double> ne;
     vector<double> xp_bet, yp_bet, xp, yp, dp_p, x, y, x_bet, y_bet;
     vector<double> v_tr, v_long;
     vector<double> force_x, force_y, force_z;
+
+    FrictionForceSolver *force_solver;
+    FrictionForceSolver *longitudinal_force_solver;
+    DataSink *datasink = nullptr;
+
     void electron_density(const IonBeam& ion_sample, ElectronBeam &ebeam);
     void init_scratch(int n_sample);
     void space_to_dynamic(const IonBeam &ion_sample);
     void beam_frame(double gamma_e);
     void lab_frame(double gamma_e);
-    void force(const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
+    void force(const IonBeam &ion, const ElectronBeam &ebeam, const Cooler &cooler);
 //    void restore_velocity(ElectronBeam &ebeam);
-    void bunched_to_coasting(IonBeam &ion, ElectronBeam &ebeam, const Cooler &cooler, FrictionForceSolver &force_solver);
+    void bunched_to_coasting(IonBeam &ion, ElectronBeam &ebeam, const Cooler &cooler);
     void force_distribute(const IonBeam &ion);
     void apply_kick(const IonBeam& ion);
-    void save_force_sdds_head(std::ofstream& of, int n);
-    FrictionForceSolver* force_solver_l;
 public:
-    void set_save_force(bool b){save_force = b;}
-    void set_dual_force_solver(bool b){dual_force_solver = b;}
-    void set_second_force_solver(FrictionForceSolver* force) {force_solver_l = force;}
+    ECoolRate(FrictionForceSolver *_force_solver, FrictionForceSolver *_longitudinal_force_solver = nullptr)
+        : force_solver(_force_solver), longitudinal_force_solver(_longitudinal_force_solver) { }
+    void set_force_datasink(DataSink *_datasink) { datasink = _datasink; }
     void adjust_rate(const IonBeam &ion, const ElectronBeam &ebeam, initializer_list<double*> func);
     
     // getters for computation vectors
@@ -53,7 +55,7 @@ public:
     
     double t_cooler() const {return t_cooler_;}
     void set_n_long_sample(int n){n_long_sample_ = n;}
-    rate3d ecool_rate(FrictionForceSolver &force, IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring);
+    rate3d ecool_rate(IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam, const Ring &ring);
 };
 
 class ForceCurve: public ECoolRate {
@@ -68,7 +70,7 @@ public:
     void set_electron_density(double x){density_e = x;}
     void set_dp_p(double x) {dp_p = x;}
     void set_angle(double x) {angle = x;}
-    void force_to_file(FrictionForceSolver &force_solver, const IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam);
+    void output_force(const IonBeam &ion, const Cooler &cooler, ElectronBeam &ebeam);
 //    ForceCurve():ECoolRate(){save_force = true;}
 };
 
