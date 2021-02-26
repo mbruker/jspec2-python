@@ -1,6 +1,8 @@
 #ifndef TWISS_H
 #define TWISS_H
 
+#include <string>
+
 class Twiss {
 public:
     // Too lazy to write getters
@@ -30,6 +32,13 @@ public:
           disp_dy(_disp_dy)
     {
         // TODO error handling
+    }
+    std::string toString() const
+    {
+        return "beta=(" + std::to_string(bet_x) + " ; " + std::to_string(bet_y) + ")\n"
+             + "alpha=(" + std::to_string(alf_x) + " ; " + std::to_string(alf_y) + ")\n"
+             + "disp=(" + std::to_string(disp_x) + " ; " + std::to_string(disp_y) + ")\n"
+             + "disp_d=(" + std::to_string(disp_dx) + " ; " + std::to_string(disp_dy) + ")";
     }
 };
 

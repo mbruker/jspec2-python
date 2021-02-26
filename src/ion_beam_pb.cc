@@ -24,7 +24,8 @@ void init_ions(py::module& m) {
         .def_property_readonly("beta", &IonBeam::beta)
         .def_property_readonly("gamma", &IonBeam::gamma)
         .def_property_readonly("twiss", &IonBeam::get_twiss)
-        .def_property_readonly("n_samples", &IonBeam::n_sample);
+        .def_property_readonly("n_samples", &IonBeam::n_sample)
+        .def("__str__", &IonBeam::toString);
 
     py::class_<IonBeam_MonteCarlo,IonBeam>(m, "IonBeam_MonteCarlo")
         .def(py::init<const Twiss &, int, double, double, double, double, double, double, double, int>(),

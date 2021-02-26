@@ -146,6 +146,7 @@ public:
     virtual void create_samples() = 0;
     double beta_s() const {return beta_s_;}
     void update_bet_s() { beta_s_ = rms_sigma_s_ / rms_dp_p_; }
+    std::string toString() const;
 };
 
 class IonBeam_MonteCarlo: public IonBeam {

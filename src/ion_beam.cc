@@ -31,6 +31,21 @@ IonBeam::IonBeam(const Twiss &_twiss, int charge_number, double mass, double kin
     p0_SI_ = gamma_*mass_*1e6*k_e*beta_/k_c;
 }
 
+std::string IonBeam::toString() const
+{
+    return "Mass (MeV/c^2): " + std::to_string(mass_) + "\n"
+         + "Charge number: " + std::to_string(charge_number_) + "\n"
+         + "Kinetic energy (MeV): " + std::to_string(kinetic_energy_) + "\n"
+         + "Beta: " + std::to_string(beta_) + "\n"
+         + "Gamma: " + std::to_string(gamma_) + "\n"
+         + "Momentum (MeV/c): " + std::to_string(p0()) + "\n"
+         + "Ions per bunch: " + std::to_string(particle_number_) + "\n"
+         + "Twiss: [\n" + twiss.toString() + "\n]\n"
+         + "RMS Emittance geometric (mm mrad): (" + std::to_string(rms_emit_x_ * 1e6) + " ; " + std::to_string(rms_emit_y_ * 1e6) + ")\n"
+         + "RMS bunch length (m): " + std::to_string(rms_sigma_s_) + "\n"
+         + "RMS rel. momentum spread: " + std::to_string(rms_dp_p_);
+}
+
 //Calculate the transverse emittance statistically
 double IonBeam_MonteCarlo::statistical_emittance_tr(const vector<double>& x, const vector<double>&xp) const
 {
